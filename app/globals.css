@@ -17,30 +17,33 @@
   --font-ui: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
 
   /* ────────────────────────────────────────────────────────────────────
-     Rosé brand palette.
+     Legendz brand palette — black and gold.
 
-     These are the fixed brand colours, used directly by the marketing
-     pages. The shadcn light/dark tokens further down are now DERIVED FROM
-     THE SAME PALETTE — as of 2026-08-05 the dashboard no longer runs its
-     own ivory/bronze system, which is why it used to look like a
-     different product. If you change a value here, change its oklch
-     counterpart below to match.
+     The five brand values are defined ONCE, as --lz-* on :root below, and
+     everything else (these utilities and the shadcn tokens the dashboard
+     reads) points at them. Change a colour there and the whole app follows.
 
-     Values are LITERAL here, never `var(--rose-*)` pointing at a separate
-     :root block. This block is `@theme inline`, which inlines whatever
-     it's given straight into the utilities and emits no custom properties
-     of its own — a var() indirection resolves only if something else
-     defines it, and silently produces colourless utilities if that
-     definition is ever dropped. That failure is invisible in the HTML,
-     because the class names still render. Literals cannot fail that way.
+       brand-bg         page ground                   #0A0A0A
+       brand-surface    cards, header, panels         #171717
+       brand-accent     gold — CTAs, eyebrows, icons  #C5A04F
+       brand-text       headings and body text        #FFFFFF
+       brand-muted      secondary text                #B8B8B8
+       brand-line       hairlines and soft fills (gold tinted into surface)
+       brand-glass      dark glass panels (hero card, footer)
+       brand-on-accent  text sitting ON gold — black, never white
+
+     Contrast (WCAG 2.x): gold on #0A0A0A ≈ 8.0:1, gold on #171717 ≈ 7.3:1,
+     black on gold ≈ 8.0:1, muted on #171717 ≈ 9.0:1 — all pass AA for small
+     text. White on gold is ≈ 2.6:1 and FAILS, hence brand-on-accent.
      ──────────────────────────────────────────────────────────────────── */
-  --color-rose-accent: #ec4899;   /* fuchsia — CTAs, eyebrows, icon glyphs */
-  --color-rose-ink: #27212a;      /* headings and nav links */
-  --color-rose-muted: #7c6b74;    /* secondary text */
-  --color-rose-ground: #fdf2f5;   /* pale pink page ground */
-  --color-rose-mid: #f9d9e3;      /* soft fills, hairlines, icon backing */
-  --color-rose-glass: #2b2228;    /* charcoal — hero glass card, used at ~70% */
-  --color-rose-surface: #ffffff;  /* header bar and card surfaces */
+  --color-brand-bg: var(--lz-bg);
+  --color-brand-surface: var(--lz-surface);
+  --color-brand-accent: var(--lz-gold);
+  --color-brand-text: var(--lz-text);
+  --color-brand-muted: var(--lz-muted);
+  --color-brand-line: var(--lz-line);
+  --color-brand-glass: var(--lz-surface);
+  --color-brand-on-accent: var(--lz-bg);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -80,96 +83,58 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   Rosé theme — the SAME palette the marketing pages use, expressed as
-   shadcn tokens so the dashboard inherits it.
+   Legendz theme. The site is always dark, so :root and .dark are the same
+   set — the dashboard, booking pages and marketing pages all read these.
 
-   This replaced an ivory/bronze/espresso set (every token sat at oklch
-   hue 85, an amber) that had been left behind when the public site was
-   rethemed to rose. The dashboard was, quite literally, a different
-   colour system bolted to the same app.
-
-   Hues here are ~330–358 (the fuchsia/plum arc). The oklch values are
-   exact conversions of the brand hexes above, so `--primary` and
-   `--color-rose-accent` are the same colour, not merely similar:
-
-     --background  #fdf2f5 rose-ground   --primary  #ec4899 rose-accent
-     --foreground  #27212a rose-ink      --accent   #f9d9e3 rose-mid
-     --sidebar     #1b151a plum          --muted-fg #7c6b74 rose-muted
-
-   `--destructive` stays red on purpose. It has to remain distinguishable
-   from the fuchsia primary, or a delete button reads as a CTA.
+   --destructive stays red on purpose: it has to remain distinguishable from
+   the gold primary, or a delete button reads as a CTA.
    ══════════════════════════════════════════════════════════════════════ */
-:root {
-  --background: oklch(0.971 0.012 358.8);
-  --foreground: oklch(0.258 0.019 314.5);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.258 0.019 314.5);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.258 0.019 314.5);
-  --primary: oklch(0.656 0.212 354.3);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.955 0.021 354);
-  --secondary-foreground: oklch(0.36 0.045 348);
-  --muted: oklch(0.962 0.016 353);
-  --muted-foreground: oklch(0.547 0.025 344.8);
-  --accent: oklch(0.915 0.038 357);
-  --accent-foreground: oklch(0.42 0.12 355);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.917 0.025 352.5);
-  --input: oklch(0.917 0.025 352.5);
-  --ring: oklch(0.656 0.212 354.3);
-  --chart-1: oklch(0.656 0.212 354.3);
-  --chart-2: oklch(0.823 0.11 346);
-  --chart-3: oklch(0.525 0.199 4);
-  --chart-4: oklch(0.547 0.025 344.8);
-  --chart-5: oklch(0.915 0.038 357);
-  /* Was 0.25rem — near-square, a holdover from the luxe-salon port. The
-     marketing site now runs soft corners (28px cards, pill buttons), so
-     the dashboard meets it partway: soft, but not so round that dense
-     tables start looking like a landing page. */
-  --radius: 0.75rem;
-  --sidebar: oklch(0.205 0.014 331.7);
-  --sidebar-foreground: oklch(0.941 0.013 340.6);
-  --sidebar-primary: oklch(0.656 0.212 354.3);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.294 0.019 329.7);
-  --sidebar-accent-foreground: oklch(0.941 0.013 340.6);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.656 0.212 354.3);
-}
-
+:root,
 .dark {
-  --background: oklch(0.205 0.014 331.7);
-  --foreground: oklch(0.941 0.013 340.6);
-  --card: oklch(0.241 0.015 330.8);
-  --card-foreground: oklch(0.941 0.013 340.6);
-  --popover: oklch(0.241 0.015 330.8);
-  --popover-foreground: oklch(0.941 0.013 340.6);
-  --primary: oklch(0.656 0.212 354.3);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.294 0.019 329.7);
-  --secondary-foreground: oklch(0.941 0.013 340.6);
-  --muted: oklch(0.294 0.019 329.7);
-  --muted-foreground: oklch(0.749 0.024 341.5);
-  --accent: oklch(0.33 0.045 340);
-  --accent-foreground: oklch(0.941 0.013 340.6);
+  /* The brand palette — the only place these values appear. */
+  --lz-bg: #0a0a0a;
+  --lz-surface: #171717;
+  --lz-gold: #c5a04f;
+  --lz-text: #ffffff;
+  --lz-muted: #b8b8b8;
+  /* Derived, not new colours: gold tinted into the surface for hairlines
+     and soft fills, and a slightly raised surface for hovers. */
+  --lz-line: color-mix(in srgb, var(--lz-gold) 22%, var(--lz-surface));
+  --lz-raised: color-mix(in srgb, var(--lz-text) 7%, var(--lz-surface));
+
+  --background: var(--lz-bg);
+  --foreground: var(--lz-text);
+  --card: var(--lz-surface);
+  --card-foreground: var(--lz-text);
+  --popover: var(--lz-surface);
+  --popover-foreground: var(--lz-text);
+  --primary: var(--lz-gold);
+  --primary-foreground: var(--lz-bg);
+  --secondary: var(--lz-raised);
+  --secondary-foreground: var(--lz-text);
+  --muted: var(--lz-raised);
+  --muted-foreground: var(--lz-muted);
+  --accent: var(--lz-raised);
+  --accent-foreground: var(--lz-text);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.656 0.212 354.3);
-  --chart-1: oklch(0.656 0.212 354.3);
-  --chart-2: oklch(0.823 0.11 346);
-  --chart-3: oklch(0.7 0.09 350);
-  --chart-4: oklch(0.749 0.024 341.5);
-  --chart-5: oklch(0.5 0.16 5);
-  --sidebar: oklch(0.181 0.011 332.9);
-  --sidebar-foreground: oklch(0.941 0.013 340.6);
-  --sidebar-primary: oklch(0.656 0.212 354.3);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.294 0.019 329.7);
-  --sidebar-accent-foreground: oklch(0.941 0.013 340.6);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: var(--lz-gold);
+  --chart-1: var(--lz-gold);
+  --chart-2: color-mix(in srgb, var(--lz-gold) 55%, var(--lz-text));
+  --chart-3: color-mix(in srgb, var(--lz-gold) 55%, var(--lz-bg));
+  --chart-4: var(--lz-muted);
+  --chart-5: color-mix(in srgb, var(--lz-gold) 30%, var(--lz-surface));
+  --radius: 0.75rem;
+  --sidebar: var(--lz-bg);
+  --sidebar-foreground: var(--lz-text);
+  --sidebar-primary: var(--lz-gold);
+  --sidebar-primary-foreground: var(--lz-bg);
+  --sidebar-accent: var(--lz-surface);
+  --sidebar-accent-foreground: var(--lz-text);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.656 0.212 354.3);
+  --sidebar-ring: var(--lz-gold);
+  color-scheme: dark;
 }
 
 @layer base {
@@ -210,4 +175,44 @@
 
 .font-lux {
   font-family: var(--font-lux), ui-serif, Georgia, serif;
+}
+/* ── Printing (Reports → "Print / Save as PDF") ─────────────────────────
+   The sidebar and topbar hide themselves with `print:` classes. On paper
+   the dark ground would waste ink and white text would vanish, so print
+   alone swaps the ground and text tokens to black on white; gold stays.
+   The screen palette above is untouched. */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  :root,
+  .dark {
+    --lz-bg: #ffffff;
+    --lz-surface: #ffffff;
+    --lz-text: #0a0a0a;
+    --lz-muted: #555555;
+    --lz-raised: #f4f4f4;
+  }
+
+  html,
+  body,
+  .legendz-dash,
+  .legendz-dash * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body,
+  .legendz-dash,
+  .legendz-dash > * > div {
+    background: #ffffff !important;
+  }
+
+  .legendz-dash [data-slot="card"] {
+    box-shadow: none;
+    border: 1px solid color-mix(in srgb, var(--lz-gold) 35%, #ffffff);
+    break-inside: avoid;
+  }
 }

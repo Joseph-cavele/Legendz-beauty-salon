@@ -42,7 +42,16 @@ import {
   WHATSAPP_MESSAGES,
   whatsappLink,
 } from "@/lib/salon-contact"
-import { formatCurrency } from "@/lib/currency"
+import { formatPrice, formatTotal } from "@/lib/currency"
+import {
+  isSlotTaken,
+  runsPastClosing,
+  TIME_SLOTS,
+  toMinutes,
+  type BusyInterval,
+} from "@/features/bookings/availability"
+import { useAvailability } from "@/features/bookings/hooks/use-availability"
+import { ONLINE_PAYMENTS_ENABLED } from "@/features/bookings/schema"
 import type { PaymentMethod, Service, Stylist } from "@/types"
 
 
@@ -61,13 +70,6 @@ const STEP_FIELDS: (keyof CreateBookingFormValues)[][] = [
   ["customerName", "customerEmail", "customerPhone"],
   [],
 ]
-
-const TIME_SLOTS = Array.from({ length: 20 }, (_, i) => {
-  const total = 9 * 60 + i * 30
-  const h = Math.floor(total / 60)
-  const m = total % 60
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
-})
 
 function formatDuration(minutes: number) {
   if (minutes < 60) return `${minutes} mins`
@@ -95,10 +97,23 @@ function formatDate(iso: string) {
 
 const todayISO = () => new Date().toISOString().split("T")[0]
 
-export function BookingWizard() {
+/**
+ * `initialServiceId` / `initialCategory` come from /book?service=… links —
+ * the home page's per-combo "Book" buttons — and only set where the wizard
+ * starts: that service already chosen, its category's tab open. app/book
+ * checks both against the real service list before passing them in.
+ */
+export function BookingWizard({
+  initialServiceId,
+  initialCategory,
+}: {
+  initialServiceId?: string
+  initialCategory?: (typeof SERVICE_CATEGORIES)[number]
+} = {}) {
   const [step, setStep] = useState(0)
-  const [activeCategory, setActiveCategory] =
-    useState<(typeof SERVICE_CATEGORIES)[number]>(DEFAULT_SERVICE_CATEGORY)
+  const [activeCategory, setActiveCategory] = useState<(typeof SERVICE_CATEGORIES)[number]>(
+    initialCategory ?? DEFAULT_SERVICE_CATEGORY
+  )
   const [submitted, setSubmitted] = useState(false)
 
   const {
@@ -131,7 +146,7 @@ export function BookingWizard() {
       customerPhone: "",
       // Overwritten by whichever finish button is pressed.
       paymentMethod: "IN_PERSON",
-      serviceIds: [],
+      serviceIds: initialServiceId ? [initialServiceId] : [],
       stylistId: "",
       bookingDate: "",
       bookingTime: "",
@@ -142,8 +157,25 @@ export function BookingWizard() {
   })
 
   const values = watch()
-  const selectedService = services.find((s) => s.id === values.serviceIds?.[0])
+  // In the order the client picked them, so the summary reads as they chose.
+  const selectedServices = (values.serviceIds ?? [])
+    .map((id) => services.find((s) => s.id === id))
+    .filter((s): s is Service => !!s)
   const selectedStylist = stylists.find((s) => s.id === values.stylistId)
+  const selectedDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0)
+
+  function toggleService(id: string) {
+    const ids = values.serviceIds ?? []
+    setValue("serviceIds", ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id], {
+      shouldValidate: true,
+    })
+    /* A different set of services means a different list of stylists who can
+       do them all, and a different visit length — so the stylist and the
+       time picked for the old set no longer stand. Pick them again. */
+    setValue("stylistId", "")
+    setValue("bookingTime", "")
+  }
+  const availability = useAvailability(values.stylistId, values.bookingDate)
 
   /* Resolution order matters. A photo stored on the Service document wins,
      because that is the salon's own upload. Otherwise the curated map keyed
@@ -157,10 +189,7 @@ export function BookingWizard() {
   const serviceImage = (service: Service) =>
     service.image ||
     servicePhoto(service)?.image ||
-    serviceThumb(
-      service.category,
-      services.findIndex((s) => s.id === service.id)
-    )
+    serviceThumb(service.category)
 
   /* Describes what is in the frame. Falling back to the service name would
      make the alt text a duplicate of the heading beside it, which a screen
@@ -240,18 +269,18 @@ export function BookingWizard() {
 
   if (submitted) {
     return (
-      <div className="mx-auto max-w-lg rounded-3xl border border-rose-mid/60 bg-rose-surface p-10 text-center shadow-sm">
-        <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-rose-accent/15 text-rose-accent">
+      <div className="mx-auto max-w-lg rounded-3xl border border-brand-line/60 bg-brand-surface p-10 text-center shadow-sm">
+        <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-brand-accent/15 text-brand-accent">
           <Check className="size-7" />
         </span>
         {/* Only the in-person path reaches this screen — the online one hands
             off to Paystack before it. In-person bookings confirm on creation,
             so this no longer promises a confirmation that is still coming;
             it reports one that has already happened. */}
-        <h2 className="mt-5 font-display text-2xl font-semibold text-rose-ink">
+        <h2 className="mt-5 font-display text-2xl font-semibold text-brand-text">
           Your appointment is confirmed!
         </h2>
-        <p className="mt-2 text-sm text-rose-muted">
+        <p className="mt-2 text-sm text-brand-muted">
           The slot is yours — a confirmation email is on its way. Payment is
           due at the salon.
         </p>
@@ -262,7 +291,7 @@ export function BookingWizard() {
             setStep(0)
             setSubmitted(false)
           }}
-          className="mt-6 inline-flex h-11 items-center gap-2 rounded-lg bg-rose-accent px-6 text-sm font-semibold text-white hover:bg-rose-accent/90"
+          className="mt-6 inline-flex h-11 items-center gap-2 rounded-lg bg-brand-accent px-6 text-sm font-semibold text-brand-on-accent hover:bg-brand-accent/90"
         >
           Book another appointment
         </button>
@@ -285,11 +314,11 @@ export function BookingWizard() {
                     className={cn(
                       "flex size-10 items-center justify-center rounded-full border transition-colors",
                       state === "active" &&
-                        "border-transparent bg-rose-accent text-white",
+                        "border-transparent bg-brand-accent text-brand-on-accent",
                       state === "done" &&
-                        "border-transparent bg-rose-accent text-white",
+                        "border-transparent bg-brand-accent text-brand-on-accent",
                       state === "upcoming" &&
-                        "border-rose-mid bg-rose-surface text-rose-muted/70"
+                        "border-brand-line bg-brand-surface text-brand-muted/70"
                     )}
                   >
                     {state === "done" ? (
@@ -302,7 +331,7 @@ export function BookingWizard() {
                     <span
                       className={cn(
                         "my-1 h-8 w-px",
-                        i < step ? "bg-rose-accent" : "bg-rose-mid"
+                        i < step ? "bg-brand-accent" : "bg-brand-line"
                       )}
                     />
                   )}
@@ -311,7 +340,7 @@ export function BookingWizard() {
                   <p
                     className={cn(
                       "text-sm font-medium",
-                      state === "upcoming" ? "text-rose-muted/70" : "text-rose-ink"
+                      state === "upcoming" ? "text-brand-muted/70" : "text-brand-text"
                     )}
                   >
                     {s.label}
@@ -324,7 +353,7 @@ export function BookingWizard() {
       </aside>
 
       {/* Step content */}
-      <section className="rounded-3xl border border-rose-mid/60 bg-rose-surface p-5 shadow-sm sm:p-7">
+      <section className="rounded-3xl border border-brand-line/60 bg-brand-surface p-5 shadow-sm sm:p-7">
         {/* Mobile step chips */}
         <div className="mb-5 flex items-center gap-1.5 overflow-x-auto lg:hidden">
           {STEPS.map((s, i) => (
@@ -333,10 +362,10 @@ export function BookingWizard() {
               className={cn(
                 "shrink-0 rounded-full px-3 py-1 text-xs font-medium",
                 i === step
-                  ? "bg-rose-accent text-white"
+                  ? "bg-brand-accent text-brand-on-accent"
                   : i < step
-                    ? "bg-rose-accent/15 text-rose-accent"
-                    : "bg-rose-mid/40 text-rose-muted/70"
+                    ? "bg-brand-accent/15 text-brand-accent"
+                    : "bg-brand-line/40 text-brand-muted/70"
               )}
             >
               {i + 1}. {s.label}
@@ -350,10 +379,8 @@ export function BookingWizard() {
             categoryServices={categoryServices}
             activeCategory={activeCategory}
             setActiveCategory={setActiveCategory}
-            selectedId={values.serviceIds?.[0]}
-            onSelect={(id) =>
-              setValue("serviceIds", [id], { shouldValidate: true })
-            }
+            selectedIds={values.serviceIds ?? []}
+            onToggle={toggleService}
             serviceImage={serviceImage}
             serviceImageAlt={serviceImageAlt}
             isLoading={servicesLoading}
@@ -365,7 +392,7 @@ export function BookingWizard() {
         {step === 1 && (
           <StaffStep
             stylists={stylists}
-            selectedService={selectedService}
+            selectedServices={selectedServices}
             selectedId={values.stylistId}
             onSelect={(id) => setValue("stylistId", id, { shouldValidate: true })}
             isLoading={stylistsLoading}
@@ -378,6 +405,9 @@ export function BookingWizard() {
           <DateTimeStep
             date={values.bookingDate}
             time={values.bookingTime}
+            busy={availability.data ?? []}
+            loadingBusy={availability.isFetching}
+            duration={selectedDuration}
             onDate={(v) => setValue("bookingDate", v, { shouldValidate: true })}
             onTime={(v) => setValue("bookingTime", v, { shouldValidate: true })}
             errors={{
@@ -399,7 +429,7 @@ export function BookingWizard() {
 
         {step === 4 && (
           <ReviewStep
-            service={selectedService}
+            services={selectedServices}
             stylist={selectedStylist}
             date={values.bookingDate}
             time={values.bookingTime}
@@ -414,7 +444,7 @@ export function BookingWizard() {
             <button
               type="button"
               onClick={goBack}
-              className="inline-flex h-11 items-center gap-2 rounded-lg border border-rose-mid px-5 text-sm font-medium text-rose-ink hover:bg-rose-ground"
+              className="inline-flex h-11 items-center gap-2 rounded-lg border border-brand-line px-5 text-sm font-medium text-brand-text hover:bg-brand-bg"
             >
               <ArrowLeft className="size-4" />
               Back
@@ -427,7 +457,7 @@ export function BookingWizard() {
             <button
               type="button"
               onClick={goNext}
-              className="inline-flex h-11 items-center gap-2 rounded-lg bg-rose-accent px-6 text-sm font-semibold text-white hover:bg-rose-accent/90"
+              className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand-accent px-6 text-sm font-semibold text-brand-on-accent hover:bg-brand-accent/90"
             >
               Continue
               <ArrowRight className="size-4" />
@@ -442,19 +472,25 @@ export function BookingWizard() {
                 type="button"
                 disabled={busy}
                 onClick={submitWith("IN_PERSON")}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-rose-mid px-5 text-sm font-semibold text-rose-ink transition-colors hover:border-rose-accent hover:text-rose-accent disabled:opacity-60"
+                className={cn(
+                  "inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold transition-colors disabled:opacity-60",
+                  ONLINE_PAYMENTS_ENABLED
+                    ? "border border-brand-line text-brand-text hover:border-brand-accent hover:text-brand-accent"
+                    : "bg-brand-accent text-brand-on-accent hover:bg-brand-accent/90"
+                )}
               >
                 {pendingMethod === "IN_PERSON" && (
                   <Loader2 className="size-4 animate-spin" />
                 )}
-                Pay in person
+                {ONLINE_PAYMENTS_ENABLED ? "Pay in person" : "Confirm booking"}
               </button>
 
+              {ONLINE_PAYMENTS_ENABLED && (
               <button
                 type="button"
                 disabled={busy}
                 onClick={submitWith("ONLINE")}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-rose-accent px-6 text-sm font-semibold text-white shadow-[0_4px_20px_-5px_rgba(236,72,153,0.35)] transition-colors hover:bg-rose-accent/90 disabled:opacity-60"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand-accent px-6 text-sm font-semibold text-brand-on-accent shadow-[0_4px_20px_-5px_color-mix(in_srgb,var(--lz-gold)_35%,transparent)] transition-colors hover:bg-brand-accent/90 disabled:opacity-60"
               >
                 {pendingMethod === "ONLINE" ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -463,6 +499,7 @@ export function BookingWizard() {
                 )}
                 {pendingMethod === "ONLINE" ? "Redirecting…" : "Pay now"}
               </button>
+              )}
             </div>
           )}
         </div>
@@ -471,7 +508,7 @@ export function BookingWizard() {
       {/* Summary + help */}
       <aside className="flex flex-col gap-5">
         <BookingSummary
-          service={selectedService}
+          services={selectedServices}
           stylist={selectedStylist}
           date={values.bookingDate}
           time={values.bookingTime}
@@ -479,16 +516,16 @@ export function BookingWizard() {
           serviceImageAlt={serviceImageAlt}
         />
 
-        <div className="rounded-2xl bg-rose-accent/10 p-5 text-center">
-          <h3 className="font-display text-lg font-semibold text-rose-accent">
+        <div className="rounded-2xl bg-brand-accent/10 p-5 text-center">
+          <h3 className="font-display text-lg font-semibold text-brand-accent">
             Need Help?
           </h3>
-          <p className="mt-1 text-xs text-rose-muted">
+          <p className="mt-1 text-xs text-brand-muted">
             Call us or message on WhatsApp for any assistance.
           </p>
-          <div className="mt-4 flex flex-col gap-2 text-sm font-medium text-rose-ink">
+          <div className="mt-4 flex flex-col gap-2 text-sm font-medium text-brand-text">
             <a href={`tel:${SALON_PHONE}`} className="flex items-center justify-center gap-2">
-              <Phone className="size-4 text-rose-accent" />
+              <Phone className="size-4 text-brand-accent" />
               {SALON_PHONE_DISPLAY}
             </a>
             <a
@@ -497,7 +534,7 @@ export function BookingWizard() {
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2"
             >
-              <Sparkles className="size-4 text-rose-accent" />
+              <Sparkles className="size-4 text-brand-accent" />
               WhatsApp us
             </a>
           </div>
@@ -514,8 +551,8 @@ function ServiceStep({
   categoryServices,
   activeCategory,
   setActiveCategory,
-  selectedId,
-  onSelect,
+  selectedIds,
+  onToggle,
   serviceImage,
   serviceImageAlt,
   isLoading,
@@ -526,8 +563,8 @@ function ServiceStep({
   categoryServices: Service[]
   activeCategory: (typeof SERVICE_CATEGORIES)[number]
   setActiveCategory: (c: (typeof SERVICE_CATEGORIES)[number]) => void
-  selectedId?: string
-  onSelect: (id: string) => void
+  selectedIds: string[]
+  onToggle: (id: string) => void
   serviceImage: (s: Service) => string
   serviceImageAlt: (s: Service) => string
   isLoading: boolean
@@ -539,11 +576,16 @@ function ServiceStep({
 
   return (
     <div>
-      <h2 className="font-display text-xl font-semibold text-rose-ink">
+      <h2 className="font-display text-xl font-semibold text-brand-text">
         1. Choose Your Service
       </h2>
-      <p className="mt-1 text-sm text-rose-muted">
-        Select the service you would like to book.
+      <p className="mt-1 text-sm text-brand-muted">
+        Select one or more services — combine as many as you like in one visit.
+        {selectedIds.length > 0 && (
+          <span className="ml-1 font-medium text-brand-accent">
+            {selectedIds.length} selected.
+          </span>
+        )}
       </p>
 
       <div className="mt-5 grid gap-5 sm:grid-cols-[160px_minmax(0,1fr)]">
@@ -557,15 +599,15 @@ function ServiceStep({
               className={cn(
                 "flex shrink-0 items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-medium transition-colors sm:w-full",
                 activeCategory === category
-                  ? "border-transparent bg-rose-accent text-white"
-                  : "border-rose-mid bg-rose-surface text-rose-ink hover:border-rose-accent/50"
+                  ? "border-transparent bg-brand-accent text-brand-on-accent"
+                  : "border-brand-line bg-brand-surface text-brand-text hover:border-brand-accent/50"
               )}
             >
               <span>{category}</span>
               <span
                 className={cn(
                   "hidden text-xs sm:inline",
-                  activeCategory === category ? "text-white/60" : "text-rose-muted/70"
+                  activeCategory === category ? "text-brand-on-accent/70" : "text-brand-muted/70"
                 )}
               >
                 {countByCategory(category)}
@@ -577,62 +619,64 @@ function ServiceStep({
         {/* Service cards */}
         <div className="flex flex-col gap-3">
           {isLoading ? (
-            <div className="flex items-center justify-center gap-2 py-12 text-sm text-rose-muted">
+            <div className="flex items-center justify-center gap-2 py-12 text-sm text-brand-muted">
               <Loader2 className="size-4 animate-spin" />
               Loading services…
             </div>
           ) : isError ? (
-            <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-rose-mid py-12 text-center text-sm text-rose-muted">
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-brand-line py-12 text-center text-sm text-brand-muted">
               Couldn&apos;t load services. Please try again.
               <button
                 type="button"
                 onClick={onRetry}
-                className="inline-flex h-9 items-center gap-2 rounded-lg bg-rose-accent px-4 text-xs font-semibold text-white hover:bg-rose-accent/90"
+                className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand-accent px-4 text-xs font-semibold text-brand-on-accent hover:bg-brand-accent/90"
               >
                 Retry
               </button>
             </div>
           ) : categoryServices.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-rose-mid py-12 text-center text-sm text-rose-muted/70">
+            <div className="rounded-xl border border-dashed border-brand-line py-12 text-center text-sm text-brand-muted/70">
               No services in this category yet.
             </div>
           ) : (
             categoryServices.map((service) => {
-              const active = selectedId === service.id
+              const active = selectedIds.includes(service.id)
               return (
                 <button
                   key={service.id}
                   type="button"
-                  onClick={() => onSelect(service.id)}
+                  aria-pressed={active}
+                  onClick={() => onToggle(service.id)}
                   className={cn(
                     "flex items-center gap-4 rounded-xl border p-3 text-left transition-colors",
                     active
-                      ? "border-rose-accent bg-rose-accent/5"
-                      : "border-rose-mid hover:border-rose-accent/50"
+                      ? "border-brand-accent bg-brand-accent/5"
+                      : "border-brand-line hover:border-brand-accent/50"
                   )}
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-medium text-rose-ink">{service.name}</h3>
+                      <h3 className="font-medium text-brand-text">{service.name}</h3>
+                      {/* A checkbox, not a radio: several can be on. */}
                       <span
                         className={cn(
-                          "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border",
-                          active ? "border-rose-accent" : "border-rose-mid"
+                          "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border",
+                          active
+                            ? "border-brand-accent bg-brand-accent text-brand-on-accent"
+                            : "border-brand-line"
                         )}
                       >
-                        {active && (
-                          <span className="size-2.5 rounded-full bg-rose-accent" />
-                        )}
+                        {active && <Check className="size-3.5" />}
                       </span>
                     </div>
-                    <p className="mt-1 line-clamp-2 text-sm text-rose-muted">
+                    <p className="mt-1 line-clamp-2 text-sm text-brand-muted">
                       {service.description}
                     </p>
                     <div className="mt-2 flex items-center gap-4 text-sm">
-                      <span className="font-semibold text-rose-ink">
-                        {formatCurrency(service.price)}
+                      <span className="font-semibold text-brand-text">
+                        {formatPrice(service.price)}
                       </span>
-                      <span className="flex items-center gap-1 text-rose-muted/70">
+                      <span className="flex items-center gap-1 text-brand-muted/70">
                         <Clock className="size-3.5" />
                         {formatDuration(service.duration)}
                       </span>
@@ -661,7 +705,7 @@ function ServiceStep({
 
 function StaffStep({
   stylists,
-  selectedService,
+  selectedServices,
   selectedId,
   onSelect,
   isLoading,
@@ -669,49 +713,59 @@ function StaffStep({
   onRetry,
 }: {
   stylists: Stylist[]
-  selectedService?: Service
+  selectedServices: Service[]
   selectedId?: string
   onSelect: (id: string) => void
   isLoading: boolean
   isError: boolean
   onRetry: () => void
 }) {
-  const eligible = selectedService
-    ? stylists.filter(
-        (s) =>
-          s.services.length === 0 ||
-          s.services.some((svc) => svc.id === selectedService.id)
-      )
-    : stylists
+  // A stylist with no list does everything; otherwise they must offer every
+  // service chosen, since one stylist takes the whole visit.
+  const eligible = stylists.filter(
+    (s) =>
+      s.services.length === 0 ||
+      selectedServices.every((chosen) => s.services.some((svc) => svc.id === chosen.id))
+  )
   const list = eligible.length > 0 ? eligible : stylists
+  const narrowed = selectedServices.length > 0 && eligible.length > 0 && eligible.length < stylists.length
+  const what = selectedServices.length > 1 ? `all ${selectedServices.length} of your services` : selectedServices[0]?.name
 
   return (
     <div>
-      <h2 className="font-display text-xl font-semibold text-rose-ink">
+      <h2 className="font-display text-xl font-semibold text-brand-text">
         2. Choose Your Stylist
       </h2>
-      <p className="mt-1 text-sm text-rose-muted">
+      <p className="mt-1 text-sm text-brand-muted">
         Pick the professional you&apos;d like to book with.
       </p>
+      {/* Says why the list is short, so one name doesn't look like a bug. */}
+      {narrowed && (
+        <p className="mt-2 rounded-lg bg-brand-accent/10 px-3 py-2 text-xs text-brand-accent">
+          {eligible.length === 1
+            ? `Only ${eligible[0].name} does ${what}. To book with someone else, go back and choose fewer services.`
+            : `Showing the stylists who do ${what}.`}
+        </p>
+      )}
 
       {isLoading ? (
-        <div className="flex items-center justify-center gap-2 py-12 text-sm text-rose-muted">
+        <div className="flex items-center justify-center gap-2 py-12 text-sm text-brand-muted">
           <Loader2 className="size-4 animate-spin" />
           Loading stylists…
         </div>
       ) : isError ? (
-        <div className="mt-5 flex flex-col items-center gap-3 rounded-xl border border-dashed border-rose-mid py-12 text-center text-sm text-rose-muted">
+        <div className="mt-5 flex flex-col items-center gap-3 rounded-xl border border-dashed border-brand-line py-12 text-center text-sm text-brand-muted">
           Couldn&apos;t load stylists. Please try again.
           <button
             type="button"
             onClick={onRetry}
-            className="inline-flex h-9 items-center gap-2 rounded-lg bg-rose-accent px-4 text-xs font-semibold text-white hover:bg-rose-accent/90"
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand-accent px-4 text-xs font-semibold text-brand-on-accent hover:bg-brand-accent/90"
           >
             Retry
           </button>
         </div>
       ) : list.length === 0 ? (
-        <div className="mt-5 rounded-xl border border-dashed border-rose-mid py-12 text-center text-sm text-rose-muted/70">
+        <div className="mt-5 rounded-xl border border-dashed border-brand-line py-12 text-center text-sm text-brand-muted/70">
           No stylists available right now.
         </div>
       ) : (
@@ -726,8 +780,8 @@ function StaffStep({
               className={cn(
                 "flex items-center gap-3 rounded-xl border p-3 text-left transition-colors",
                 active
-                  ? "border-rose-accent bg-rose-accent/5"
-                  : "border-rose-mid hover:border-rose-accent/50"
+                  ? "border-brand-accent bg-brand-accent/5"
+                  : "border-brand-line hover:border-brand-accent/50"
               )}
             >
               <Avatar size="lg" className="size-12">
@@ -755,8 +809,8 @@ function StaffStep({
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <h3 className="font-medium text-rose-ink">{stylist.name}</h3>
-                <p className="line-clamp-1 text-xs text-rose-muted">
+                <h3 className="font-medium text-brand-text">{stylist.name}</h3>
+                <p className="line-clamp-1 text-xs text-brand-muted">
                   {stylist.services.map((s) => s.name).slice(0, 2).join(", ") ||
                     stylist.bio ||
                     "Salon stylist"}
@@ -765,10 +819,10 @@ function StaffStep({
               <span
                 className={cn(
                   "flex size-5 shrink-0 items-center justify-center rounded-full border",
-                  active ? "border-rose-accent" : "border-rose-mid"
+                  active ? "border-brand-accent" : "border-brand-line"
                 )}
               >
-                {active && <span className="size-2.5 rounded-full bg-rose-accent" />}
+                {active && <span className="size-2.5 rounded-full bg-brand-accent" />}
               </span>
             </button>
           )
@@ -784,27 +838,35 @@ function StaffStep({
 function DateTimeStep({
   date,
   time,
+  busy,
+  loadingBusy,
+  duration,
   onDate,
   onTime,
   errors,
 }: {
   date: string
   time: string
+  /** The chosen stylist's booked ranges on `date`. */
+  busy: BusyInterval[]
+  loadingBusy: boolean
+  /** Minutes the selected services take — a slot is taken if any of it overlaps. */
+  duration: number
   onDate: (v: string) => void
   onTime: (v: string) => void
   errors: { date?: string; time?: string }
 }) {
   return (
     <div>
-      <h2 className="font-display text-xl font-semibold text-rose-ink">
+      <h2 className="font-display text-xl font-semibold text-brand-text">
         3. Select Date &amp; Time
       </h2>
-      <p className="mt-1 text-sm text-rose-muted">
+      <p className="mt-1 text-sm text-brand-muted">
         Choose when you&apos;d like your appointment.
       </p>
 
       <div className="mt-5 max-w-xs">
-        <label className="text-sm font-medium text-rose-ink" htmlFor="booking-date">
+        <label className="text-sm font-medium text-brand-text" htmlFor="booking-date">
           Date
         </label>
         <Input
@@ -819,24 +881,48 @@ function DateTimeStep({
       </div>
 
       <div className="mt-5">
-        <p className="text-sm font-medium text-rose-ink">Available times</p>
+        <p className="text-sm font-medium text-brand-text">
+          Available times{loadingBusy && <span className="ml-2 text-xs text-brand-muted">checking…</span>}
+        </p>
         <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {TIME_SLOTS.map((slot) => (
-            <button
-              key={slot}
-              type="button"
-              onClick={() => onTime(slot)}
-              className={cn(
-                "rounded-lg border py-2 text-sm font-medium transition-colors",
-                time === slot
-                  ? "border-transparent bg-rose-accent text-white"
-                  : "border-rose-mid text-rose-ink hover:border-rose-accent/60"
-              )}
-            >
-              {formatTime(slot)}
-            </button>
-          ))}
+          {TIME_SLOTS.map((slot) => {
+            const tooLate = runsPastClosing(toMinutes(slot), duration)
+            const taken = tooLate || isSlotTaken(toMinutes(slot), duration, busy)
+            return (
+              <button
+                key={slot}
+                type="button"
+                disabled={taken}
+                aria-label={
+                  taken ? `${formatTime(slot)} — ${tooLate ? "runs past closing" : "already booked"}` : undefined
+                }
+                onClick={() => onTime(slot)}
+                className={cn(
+                  "rounded-lg border py-2 text-sm font-medium transition-colors",
+                  taken
+                    ? "cursor-not-allowed border-brand-line/40 text-brand-muted/60 line-through"
+                    : time === slot
+                      ? "border-transparent bg-brand-accent text-brand-on-accent"
+                      : "border-brand-line text-brand-text hover:border-brand-accent/60"
+                )}
+              >
+                {formatTime(slot)}
+              </button>
+            )
+          })}
         </div>
+        {time && runsPastClosing(toMinutes(time), duration) ? (
+          <p className="mt-2 text-sm text-destructive">
+            Your services would run past closing time from {formatTime(time)}. Please choose an earlier time.
+          </p>
+        ) : (
+          time &&
+          isSlotTaken(toMinutes(time), duration, busy) && (
+            <p className="mt-2 text-sm text-destructive">
+              That time has just been booked. Please choose another.
+            </p>
+          )
+        )}
         {errors.time && <p className="mt-2 text-sm text-destructive">{errors.time}</p>}
       </div>
     </div>
@@ -858,16 +944,16 @@ function DetailsStep({
 }) {
   return (
     <div>
-      <h2 className="font-display text-xl font-semibold text-rose-ink">
+      <h2 className="font-display text-xl font-semibold text-brand-text">
         4. Your Details
       </h2>
-      <p className="mt-1 text-sm text-rose-muted">
+      <p className="mt-1 text-sm text-brand-muted">
         Tell us who the appointment is for.
       </p>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="text-sm font-medium text-rose-ink" htmlFor="name">
+          <label className="text-sm font-medium text-brand-text" htmlFor="name">
             Full name
           </label>
           <Input id="name" className="mt-1.5" {...register("customerName")} />
@@ -878,7 +964,7 @@ function DetailsStep({
           )}
         </div>
         <div>
-          <label className="text-sm font-medium text-rose-ink" htmlFor="email">
+          <label className="text-sm font-medium text-brand-text" htmlFor="email">
             Email
           </label>
           <Input id="email" type="email" className="mt-1.5" {...register("customerEmail")} />
@@ -889,7 +975,7 @@ function DetailsStep({
           )}
         </div>
         <div>
-          <label className="text-sm font-medium text-rose-ink" htmlFor="phone">
+          <label className="text-sm font-medium text-brand-text" htmlFor="phone">
             Phone number
           </label>
           <Input
@@ -909,8 +995,8 @@ function DetailsStep({
       </div>
 
       <div className="mt-4">
-        <label className="text-sm font-medium text-rose-ink" htmlFor="notes">
-          Notes <span className="text-rose-muted/70">(optional)</span>
+        <label className="text-sm font-medium text-brand-text" htmlFor="notes">
+          Notes <span className="text-brand-muted/70">(optional)</span>
         </label>
         <Textarea
           id="notes"
@@ -921,10 +1007,10 @@ function DetailsStep({
       </div>
 
       <div className="mt-4">
-        <p className="text-sm font-medium text-rose-ink">
-          Reference photos <span className="text-rose-muted/70">(optional)</span>
+        <p className="text-sm font-medium text-brand-text">
+          Reference photos <span className="text-brand-muted/70">(optional)</span>
         </p>
-        <p className="mb-2 text-sm text-rose-muted">
+        <p className="mb-2 text-sm text-brand-muted">
           Share inspiration for the look you want.
         </p>
         <HairstyleUpload onChange={onImages} error={errors.imageUrls?.message} />
@@ -936,50 +1022,51 @@ function DetailsStep({
 /* ---------------- Step 5: Review ---------------- */
 
 function ReviewStep({
-  service,
+  services,
   stylist,
   date,
   time,
   name,
   email,
 }: {
-  service?: Service
+  services: Service[]
   stylist?: Stylist
   date: string
   time: string
   name: string
   email: string
 }) {
+  const duration = services.reduce((sum, s) => sum + s.duration, 0)
   const rows = [
-    { label: "Service", value: service?.name },
+    { label: services.length > 1 ? "Services" : "Service", value: services.length ? services.map((s) => s.name).join(", ") : undefined },
     { label: "Stylist", value: stylist?.name },
     { label: "Date", value: date ? formatDate(date) : undefined },
     { label: "Time", value: time ? formatTime(time) : undefined },
-    { label: "Duration", value: service ? formatDuration(service.duration) : undefined },
+    { label: "Duration", value: services.length ? formatDuration(duration) : undefined },
     { label: "Name", value: name },
     { label: "Email", value: email },
   ]
 
   return (
     <div>
-      <h2 className="font-display text-xl font-semibold text-rose-ink">
+      <h2 className="font-display text-xl font-semibold text-brand-text">
         5. Review &amp; Confirm
       </h2>
-      <p className="mt-1 text-sm text-rose-muted">
+      <p className="mt-1 text-sm text-brand-muted">
         Please review your appointment details before confirming.
       </p>
 
-      <dl className="mt-5 divide-y divide-rose-mid rounded-xl border border-rose-mid/60">
+      <dl className="mt-5 divide-y divide-brand-line rounded-xl border border-brand-line/60">
         {rows.map((row) => (
-          <div key={row.label} className="flex items-center justify-between px-4 py-3 text-sm">
-            <dt className="text-rose-muted">{row.label}</dt>
-            <dd className="font-medium text-rose-ink">{row.value ?? "—"}</dd>
+          <div key={row.label} className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+            <dt className="shrink-0 text-brand-muted">{row.label}</dt>
+            <dd className="text-right font-medium text-brand-text">{row.value ?? "—"}</dd>
           </div>
         ))}
         <div className="flex items-center justify-between px-4 py-3.5">
-          <dt className="font-display text-base font-semibold text-rose-ink">Total</dt>
-          <dd className="font-display text-base font-semibold text-rose-accent">
-            {formatCurrency(service?.price ?? 0)}
+          <dt className="font-display text-base font-semibold text-brand-text">Total</dt>
+          <dd className="font-display text-base font-semibold text-brand-accent">
+            {services.length ? formatTotal(services.map((s) => s.price)) : "—"}
           </dd>
         </div>
       </dl>
@@ -990,39 +1077,40 @@ function ReviewStep({
 /* ---------------- Booking summary sidebar ---------------- */
 
 function BookingSummary({
-  service,
+  services,
   stylist,
   date,
   time,
   serviceImage,
   serviceImageAlt,
 }: {
-  service?: Service
+  services: Service[]
   stylist?: Stylist
   date: string
   time: string
   serviceImage: (s: Service) => string
   serviceImageAlt: (s: Service) => string
 }) {
+  // The photo shows the first service chosen.
+  const service = services[0]
+  const duration = services.reduce((sum, s) => sum + s.duration, 0)
   const rows = [
-    { label: "Service", value: service?.name },
     { label: "Staff", value: stylist?.name },
     {
       label: "Date & Time",
       value: date && time ? `${formatDate(date)}, ${formatTime(time)}` : date ? formatDate(date) : undefined,
     },
-    { label: "Duration", value: service ? formatDuration(service.duration) : undefined },
-    { label: "Amount", value: service ? formatCurrency(service.price) : undefined },
+    { label: "Duration", value: services.length ? formatDuration(duration) : undefined },
   ]
 
   return (
-    <div className="rounded-2xl bg-rose-glass p-5 text-white">
-      <h3 className="font-display text-lg font-semibold text-rose-accent">
+    <div className="rounded-2xl bg-brand-glass p-5 text-white">
+      <h3 className="font-display text-lg font-semibold text-brand-accent">
         Your Booking Summary
       </h3>
 
       <div className="mt-4 flex items-center gap-3">
-        <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-rose-surface/10">
+        <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-brand-surface/10">
           <Image
             src={service ? serviceImage(service) : stockPhotos.salonInterior}
             alt={service ? serviceImageAlt(service) : ""}
@@ -1032,13 +1120,29 @@ function BookingSummary({
           />
         </div>
         <p className="text-xs text-white/50">
-          {service
-            ? "Your selected service is shown here."
-            : "No service selected yet. Please select a service to see the details here."}
+          {services.length > 1
+            ? `${services.length} services selected.`
+            : service
+              ? "Your selected service is shown here."
+              : "No service selected yet. Please select a service to see the details here."}
         </p>
       </div>
 
-      <dl className="mt-5 flex flex-col">
+      {services.length > 0 && (
+        <ul className="mt-5 flex flex-col">
+          {services.map((s) => (
+            <li
+              key={s.id}
+              className="flex items-center justify-between gap-3 border-b border-white/10 py-2.5 text-sm"
+            >
+              <span className="min-w-0 truncate font-medium text-white/90">{s.name}</span>
+              <span className="shrink-0 text-white/60">{formatPrice(s.price)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <dl className={cn("flex flex-col", services.length === 0 && "mt-5")}>
         {rows.map((row) => (
           <div
             key={row.label}
@@ -1054,8 +1158,8 @@ function BookingSummary({
 
       <div className="mt-4 flex items-center justify-between">
         <span className="font-display text-lg font-semibold">Total</span>
-        <span className="font-display text-lg font-semibold text-rose-accent">
-          {formatCurrency(service?.price ?? 0)}
+        <span className="font-display text-lg font-semibold text-brand-accent">
+          {services.length ? formatTotal(services.map((s) => s.price)) : "—"}
         </span>
       </div>
     </div>

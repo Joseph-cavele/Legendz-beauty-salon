@@ -1,4 +1,4 @@
-import "dotenv/config"
+import "./legendz-env" // must stay first: loads env and refuses non-Legendz databases
 import mongoose from "mongoose"
 import { connectDB } from "../lib/db"
 import "../lib/models"

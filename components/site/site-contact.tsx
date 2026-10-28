@@ -22,6 +22,7 @@ import { fadeUp } from "@/lib/motion"
 import {
   SALON_ADDRESS,
   SALON_EMAIL,
+  SALON_HOURS,
   SALON_MAP_QUERY,
   SALON_PHONE,
   SALON_PHONE_DISPLAY,
@@ -44,31 +45,27 @@ import {
    copies alongside site-header.tsx's, which is how a placeholder number
    survived here after the real one had been set.
 
-   The opening hours below were the last unconfirmed thing here. The salon
-   trades around the clock, so every day now reads the same.
+   Opening hours come from SALON_HOURS too — the same values the booking
+   wizard builds its time slots from.
    ══════════════════════════════════════════════════════════════════════ */
 const PHONE = SALON_PHONE_DISPLAY
 const WHATSAPP = whatsappLink(WHATSAPP_MESSAGES.general)
 const EMAIL = SALON_EMAIL
 
-/* Open 24/7, so every row reads the same. Kept as seven rows rather than
-   collapsed to one line because the list highlights the current day, which
-   still tells a visitor the page knows what day it is — and because a day
-   that stops being 24-hour then only needs its own row edited.
-
-   Nothing parses these strings except the `=== "Closed"` check that greys a
-   row out, so a day can go back to real hours by editing it here. Keep
-   lib/models/Settings.ts in step; it carries the same claim for the
-   dashboard. */
+/* Same hours every day, but kept as seven rows because the list highlights
+   the current day — and a day that changes then only needs its own row
+   edited. Nothing parses these strings except the `=== "Closed"` check that
+   greys a row out. Keep lib/models/Settings.ts in step. */
+const DAILY = `${SALON_HOURS.open} – ${SALON_HOURS.close}`
 const openingHours = [
-  { day: "Monday", hours: "Open 24 hours" },
-  { day: "Tuesday", hours: "Open 24 hours" },
-  { day: "Wednesday", hours: "Open 24 hours" },
-  { day: "Thursday", hours: "Open 24 hours" },
-  { day: "Friday", hours: "Open 24 hours" },
-  { day: "Saturday", hours: "Open 24 hours" },
-  { day: "Sunday", hours: "Open 24 hours" },
-]
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+].map((day) => ({ day, hours: DAILY }))
 
 /* Hardcoded rather than read from lib/date.ts: SALON_TIMEZONE has no
    NEXT_PUBLIC_ prefix, so it does not reach the browser and would silently
@@ -180,17 +177,23 @@ export function SiteContact() {
     variants: fadeUp(reduce, delay, distance),
   })
 
-  const inputClass =
-    "w-full rounded-[12px] border border-rose-mid bg-rose-surface px-4 py-3 font-ui text-sm text-rose-ink outline-none transition-colors placeholder:text-rose-muted/60 focus:border-rose-accent focus:ring-2 focus:ring-rose-accent/25"
+  /* Width is kept out of the shared look on purpose. The dial-code select
+     used to append `w-auto` to a string that already had `w-full`; both are
+     single-class utilities, so whichever Tailwind emits later wins — and
+     `w-full` did. With `shrink-0` the select then took the whole row and
+     squeezed the phone input to ~34px, too narrow to tap or type into. */
+  const fieldClass =
+    "rounded-[12px] border border-brand-line bg-brand-surface px-4 py-3 font-ui text-sm text-brand-text outline-none transition-colors placeholder:text-brand-muted/60 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/25"
+  const inputClass = `w-full ${fieldClass}`
 
-  const labelClass = "block font-ui text-xs font-semibold text-rose-ink"
+  const labelClass = "block font-ui text-xs font-semibold text-brand-text"
 
   return (
     /* Takes over `#contact` from the footer, which held the anchor only
        because there was nothing better to point the nav at. */
     <section
       id="contact"
-      className="scroll-mt-24 bg-[radial-gradient(ellipse_90%_70%_at_50%_0%,#fbe4ee_0%,#fdf2f5_60%)] py-20 sm:py-28"
+      className="scroll-mt-24 bg-[radial-gradient(ellipse_90%_70%_at_50%_0%,color-mix(in_srgb,var(--lz-gold)_10%,var(--lz-surface))_0%,var(--lz-bg)_60%)] py-20 sm:py-28"
     >
       <div className="mx-auto max-w-7xl px-5 md:px-10 xl:px-16">
         <div className="grid gap-14 lg:grid-cols-2 lg:gap-16">
@@ -198,7 +201,7 @@ export function SiteContact() {
           <div>
             <motion.p
               {...reveal(0, 14)}
-              className="flex items-center gap-2 font-ui text-[10px] font-semibold tracking-[0.22em] text-rose-accent uppercase sm:text-[11px]"
+              className="flex items-center gap-2 font-ui text-[10px] font-semibold tracking-[0.22em] text-brand-accent uppercase sm:text-[11px]"
             >
               <Sparkles className="size-3" aria-hidden />
               Contact
@@ -206,14 +209,14 @@ export function SiteContact() {
 
             <motion.h2
               {...reveal(0.08)}
-              className="mt-4 font-display text-[clamp(1.9rem,4.2vw,2.9rem)] leading-[1.15] font-medium tracking-[-0.01em] text-rose-ink"
+              className="mt-4 font-display text-[clamp(1.9rem,4.2vw,2.9rem)] leading-[1.15] font-medium tracking-[-0.01em] text-brand-text"
             >
               Let&rsquo;s talk
             </motion.h2>
 
             <motion.p
               {...reveal(0.14)}
-              className="mt-4 max-w-md font-ui text-sm leading-[1.7] text-rose-muted sm:text-base"
+              className="mt-4 max-w-md font-ui text-sm leading-[1.7] text-brand-muted sm:text-base"
             >
               Not sure which service you need, or how long your locs will take?
               Send us a note and we&rsquo;ll come back to you with an honest
@@ -223,6 +226,10 @@ export function SiteContact() {
             <motion.form
               {...reveal(0.2, 24)}
               onSubmit={handleSubmit(onSubmit, onInvalid)}
+              // Until the page's JavaScript loads, a submit is the browser's
+              // own — and its default GET put the name, email and phone
+              // number in the address bar (and so in history and logs).
+              method="post"
               noValidate
               className="mt-9 flex flex-col gap-5"
             >
@@ -241,7 +248,7 @@ export function SiteContact() {
 
               <div>
                 <label htmlFor="contact-name" className={labelClass}>
-                  Full name <span className="text-rose-accent">*</span>
+                  Full name <span className="text-brand-accent">*</span>
                 </label>
                 <input
                   id="contact-name"
@@ -265,7 +272,7 @@ export function SiteContact() {
 
               <div>
                 <label htmlFor="contact-email" className={labelClass}>
-                  Email <span className="text-rose-accent">*</span>
+                  Email <span className="text-brand-accent">*</span>
                 </label>
                 <input
                   id="contact-email"
@@ -290,7 +297,7 @@ export function SiteContact() {
               <div>
                 <label htmlFor="contact-phone" className={labelClass}>
                   Phone number{" "}
-                  <span className="font-normal text-rose-muted">(optional)</span>
+                  <span className="font-normal text-brand-muted">(optional)</span>
                 </label>
                 {/* The dial code is a separate control because the API stores
                     it separately — the route joins it to the national number.
@@ -298,7 +305,7 @@ export function SiteContact() {
                 <div className="mt-2 flex gap-2">
                   <select
                     aria-label="Country dial code"
-                    className={`${inputClass} w-auto shrink-0 pr-2`}
+                    className={`${fieldClass} w-auto shrink-0 pr-2`}
                     {...register("dialCode")}
                   >
                     {DIAL_CODES.map((entry) => (
@@ -315,7 +322,9 @@ export function SiteContact() {
                     placeholder="00 000 0000"
                     aria-invalid={!!errors.phone}
                     aria-describedby={errors.phone ? "contact-phone-error" : undefined}
-                    className={inputClass}
+                    // min-w-0: an input's intrinsic width would otherwise stop
+                    // it shrinking beside the select on a narrow phone.
+                    className={`${fieldClass} min-w-0 flex-1`}
                     {...register("phone")}
                   />
                 </div>
@@ -331,7 +340,7 @@ export function SiteContact() {
 
               <div>
                 <label htmlFor="contact-message" className={labelClass}>
-                  How can we help? <span className="text-rose-accent">*</span>
+                  How can we help? <span className="text-brand-accent">*</span>
                 </label>
                 <textarea
                   id="contact-message"
@@ -364,12 +373,12 @@ export function SiteContact() {
               <label className="flex cursor-pointer items-start gap-3">
                 <input
                   type="checkbox"
-                  className="mt-0.5 size-4 shrink-0 accent-rose-accent"
+                  className="mt-0.5 size-4 shrink-0 accent-brand-accent"
                   {...register("marketingOptIn")}
                 />
-                <span className="font-ui text-xs leading-[1.6] text-rose-muted">
+                <span className="font-ui text-xs leading-[1.6] text-brand-muted">
                   I&rsquo;d like to hear about new services and offers{" "}
-                  <span className="text-rose-muted/70">(optional)</span>
+                  <span className="text-brand-muted/70">(optional)</span>
                 </span>
               </label>
 
@@ -377,7 +386,7 @@ export function SiteContact() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-rose-accent px-8 py-3.5 font-ui text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-12px_rgba(236,72,153,0.9)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-accent active:translate-y-0 disabled:pointer-events-none disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-accent px-8 py-3.5 font-ui text-sm font-semibold text-brand-on-accent transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-12px_color-mix(in_srgb,var(--lz-gold)_90%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent active:translate-y-0 disabled:pointer-events-none disabled:opacity-60"
                 >
                   {isSubmitting && (
                     <Loader2 className="size-4 animate-spin" aria-hidden />
@@ -392,7 +401,7 @@ export function SiteContact() {
           <div className="flex flex-col gap-6">
             <motion.div
               {...reveal(0.1, 28)}
-              className="relative h-[300px] overflow-hidden rounded-[22px] shadow-[0_24px_60px_-28px_rgba(39,33,42,0.45)] sm:h-[340px]"
+              className="relative h-[300px] overflow-hidden rounded-[22px] shadow-[0_24px_60px_-28px_rgba(0,0,0,0.45)] sm:h-[340px]"
             >
               {/* The plain /maps?q=…&output=embed form needs no API key and no
                   billing account, unlike the Embed API. Lazy so a map far
@@ -409,7 +418,7 @@ export function SiteContact() {
                 href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="absolute right-4 bottom-4 inline-flex items-center gap-2 rounded-full bg-rose-surface px-4 py-2.5 font-ui text-xs font-semibold text-rose-ink shadow-[0_12px_28px_-10px_rgba(39,33,42,0.6)] transition-colors hover:bg-rose-accent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-accent"
+                className="absolute right-4 bottom-4 inline-flex items-center gap-2 rounded-full bg-brand-surface px-4 py-2.5 font-ui text-xs font-semibold text-brand-text shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)] transition-colors hover:bg-brand-accent hover:text-brand-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent"
               >
                 <Navigation className="size-3.5" aria-hidden />
                 Get directions
@@ -418,10 +427,10 @@ export function SiteContact() {
 
             <motion.div
               {...reveal(0.16, 28)}
-              className="rounded-[22px] bg-rose-surface p-7 shadow-[0_24px_60px_-30px_rgba(39,33,42,0.4)] sm:p-8"
+              className="rounded-[22px] bg-brand-surface p-7 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.4)] sm:p-8"
             >
-              <h3 className="flex items-center gap-2.5 font-display text-lg font-medium text-rose-ink">
-                <Clock className="size-4 text-rose-accent" aria-hidden />
+              <h3 className="flex items-center gap-2.5 font-display text-lg font-medium text-brand-text">
+                <Clock className="size-4 text-brand-accent" aria-hidden />
                 Opening hours
               </h3>
 
@@ -433,21 +442,21 @@ export function SiteContact() {
                   return (
                     <div
                       key={entry.day}
-                      className={`flex items-center justify-between gap-4 border-b border-rose-mid/60 py-2.5 last:border-0 ${
-                        isToday ? "-mx-3 rounded-lg bg-rose-mid/35 px-3" : ""
+                      className={`flex items-center justify-between gap-4 border-b border-brand-line/60 py-2.5 last:border-0 ${
+                        isToday ? "-mx-3 rounded-lg bg-brand-line/35 px-3" : ""
                       }`}
                     >
-                      <dt className="font-ui text-sm text-rose-muted">
+                      <dt className="font-ui text-sm text-brand-muted">
                         {entry.day}
                         {isToday && (
-                          <span className="ml-2 font-semibold text-rose-accent">
+                          <span className="ml-2 font-semibold text-brand-accent">
                             Today
                           </span>
                         )}
                       </dt>
                       <dd
                         className={`font-ui text-sm font-semibold ${
-                          closed ? "text-rose-muted/70" : "text-rose-ink"
+                          closed ? "text-brand-muted/70" : "text-brand-text"
                         }`}
                       >
                         {entry.hours}
@@ -457,10 +466,10 @@ export function SiteContact() {
                 })}
               </dl>
 
-              <div className="mt-7 flex flex-col gap-4 border-t border-rose-mid pt-6">
-                <p className="flex items-start gap-3 font-ui text-sm text-rose-muted">
+              <div className="mt-7 flex flex-col gap-4 border-t border-brand-line pt-6">
+                <p className="flex items-start gap-3 font-ui text-sm text-brand-muted">
                   <MapPin
-                    className="mt-0.5 size-4 shrink-0 text-rose-accent"
+                    className="mt-0.5 size-4 shrink-0 text-brand-accent"
                     aria-hidden
                   />
                   {SALON_ADDRESS}
@@ -471,17 +480,17 @@ export function SiteContact() {
                     bare 0-prefixed number that fails from abroad. */}
                 <a
                   href={`tel:${SALON_PHONE}`}
-                  className="flex items-center gap-3 font-ui text-sm text-rose-muted transition-colors hover:text-rose-accent"
+                  className="flex items-center gap-3 font-ui text-sm text-brand-muted transition-colors hover:text-brand-accent"
                 >
-                  <Phone className="size-4 shrink-0 text-rose-accent" aria-hidden />
+                  <Phone className="size-4 shrink-0 text-brand-accent" aria-hidden />
                   {PHONE}
                 </a>
 
                 <a
                   href={`mailto:${EMAIL}`}
-                  className="flex items-center gap-3 font-ui text-sm text-rose-muted transition-colors hover:text-rose-accent"
+                  className="flex items-center gap-3 font-ui text-sm text-brand-muted transition-colors hover:text-brand-accent"
                 >
-                  <Mail className="size-4 shrink-0 text-rose-accent" aria-hidden />
+                  <Mail className="size-4 shrink-0 text-brand-accent" aria-hidden />
                   {EMAIL}
                 </a>
 
@@ -489,10 +498,10 @@ export function SiteContact() {
                   href={WHATSAPP}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 font-ui text-sm text-rose-muted transition-colors hover:text-rose-accent"
+                  className="flex items-center gap-3 font-ui text-sm text-brand-muted transition-colors hover:text-brand-accent"
                 >
                   <MessageCircle
-                    className="size-4 shrink-0 text-rose-accent"
+                    className="size-4 shrink-0 text-brand-accent"
                     aria-hidden
                   />
                   Message us on WhatsApp

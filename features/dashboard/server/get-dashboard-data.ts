@@ -58,9 +58,18 @@ async function fetchDashboardData(): Promise<DashboardData> {
   const todayStr = salonToday()
   const realBookings = bookings.filter((booking) => !isSampleBooking(booking))
 
-  const totalRevenue = realBookings
-    .filter((b) => b.status === "COMPLETED")
-    .reduce((sum, b) => sum + b.amount, 0)
+  /* Revenue in two parts, so a confirmed appointment shows up the moment
+     it's booked instead of reading R0 until the visit is marked Completed:
+       earned = COMPLETED (done and paid)
+       booked = CONFIRMED / PENDING (coming up, paid on the day)
+     Cancelled, no-show and unpaid-online bookings count for neither. */
+  const sumAmount = (statuses: string[]) =>
+    realBookings
+      .filter((b) => statuses.includes(b.status))
+      .reduce((sum, b) => sum + (b.amount ?? 0), 0)
+  const earnedRevenue = sumAmount(["COMPLETED"])
+  const bookedRevenue = sumAmount(["CONFIRMED", "PENDING"])
+  const totalRevenue = earnedRevenue + bookedRevenue
 
   const totalAppointments = realBookings.length
   const todaysAppointments = realBookings.filter(
@@ -129,6 +138,8 @@ async function fetchDashboardData(): Promise<DashboardData> {
   return {
     stats: {
       totalRevenue,
+      earnedRevenue,
+      bookedRevenue,
       totalAppointments,
       todaysAppointments,
       pendingAppointments,
@@ -148,6 +159,6 @@ async function fetchDashboardData(): Promise<DashboardData> {
  */
 export const getDashboardData = unstable_cache(
   fetchDashboardData,
-  ["dashboard-data"],
+  ["dashboard-data-v2"],
   { tags: ["dashboard"], revalidate: 60 }
 )

@@ -1,3 +1,4 @@
+import { brandedEmail } from "@/emails/layout"
 import { escapeHtml } from "@/emails/escape-html"
 
 interface ContactMessageOwnerEmailProps {
@@ -15,9 +16,8 @@ export function contactMessageOwnerEmailHtml({
   message,
   marketingOptIn,
 }: ContactMessageOwnerEmailProps) {
-  return `
-    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-      <h2>New Message from the Website</h2>
+  return brandedEmail(`
+      <h2 style="margin-top: 0;">New Message from the Website</h2>
       <p>Someone sent a message through the contact form.</p>
       <table style="width: 100%; border-collapse: collapse;">
         <tr><td style="padding: 4px 0; color: #666;">Name</td><td>${escapeHtml(name)}</td></tr>
@@ -28,8 +28,7 @@ export function contactMessageOwnerEmailHtml({
       <p style="color: #666; margin-bottom: 4px;">Message</p>
       <!-- white-space: pre-wrap keeps the sender's own line breaks, which
            escapeHtml would otherwise leave to collapse into one paragraph. -->
-      <p style="white-space: pre-wrap; padding: 12px; background: #faf5f7; border-radius: 8px;">${escapeHtml(message)}</p>
+      <p style="white-space: pre-wrap; padding: 12px; background: #f5f5f5; border-radius: 8px;">${escapeHtml(message)}</p>
       <p>Reply straight to this email to answer ${escapeHtml(name)}.</p>
-    </div>
-  `
+  `)
 }

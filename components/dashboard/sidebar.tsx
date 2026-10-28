@@ -8,6 +8,7 @@ import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import NextImage from "next/image"
 import { LogOut, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { salonImages } from "@/lib/salon-assets"
 import { useNotifications } from "@/features/notifications/hooks/use-notifications"
 import { useDashboardNav } from "@/components/dashboard/dashboard-nav-context"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -24,26 +25,23 @@ function initials(name?: string | null) {
 }
 
 /* Mirrors the public site header's lockup — medallion, serif wordmark,
-   fuchsia caption — so the sidebar reads as the same brand rather than the
-   olive Flower2 glyph it used to carry from an earlier theme. The mark is
-   gold line-art on transparent, so it needs a light backing to stay legible
-   against the plum sidebar. */
+   gold caption — so the sidebar reads as the same brand as the site. */
 function SidebarBrand() {
   return (
     <span className="flex items-center gap-2.5">
       <NextImage
-        src="/images/logo/patrick-mark.png"
+        src={salonImages.logo.src}
         alt=""
         width={32}
         height={32}
-        className="size-8 shrink-0 rounded-full bg-white/95 object-contain p-0.5"
+        className="size-8 shrink-0 rounded-full bg-brand-surface object-cover"
       />
       <span className="flex flex-col leading-none">
         <span className="font-display text-base font-semibold text-sidebar-foreground">
-          Patrick
+          Legendz
         </span>
-        <span className="text-rose-accent mt-0.5 text-[9px] font-semibold tracking-[0.2em]">
-          DREADLOCKS &amp; BEAUTY
+        <span className="text-brand-accent mt-0.5 text-[9px] font-semibold tracking-[0.2em]">
+          BEAUTY SALON
         </span>
       </span>
     </span>
@@ -167,7 +165,7 @@ export function Sidebar({
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground sm:flex">
+      <aside className="hidden w-60 shrink-0 print:!hidden flex-col bg-sidebar text-sidebar-foreground sm:flex">
         <div className="flex h-14 items-center border-b border-sidebar-border px-4">
           <SidebarBrand />
         </div>

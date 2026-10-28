@@ -1,11 +1,7 @@
 import { z } from "zod"
 
-/* The salon's actual departments, not a generic salon template. The previous
-   list ("Hair", "Beauty", "Skin", "Nail", "Packages") described a business
-   this one isn't: every service Patrick's offers is hair, so four of those
-   five tabs were permanently empty and the fifth held everything.
-
-   These five split the real price list into groups a customer picks between.
+/* Legendz Beauty Salon's departments — the five groups its price list is
+   split into (lib/salon-services.ts uses the same names).
    Renaming one is a data migration — existing Service documents store the
    category as a plain string, so change a name here and the services filed
    under the old one drop out of the booking wizard's tabs until they are
@@ -13,9 +9,9 @@ import { z } from "zod"
 export const SERVICE_CATEGORIES = [
   "Dreadlocks",
   "Braids",
-  "Cuts & Styling",
-  "Treatments",
-  "Wigs",
+  "Nails",
+  "Hair",
+  "Weave",
 ] as const
 
 /**
@@ -30,7 +26,9 @@ export const DEFAULT_SERVICE_CATEGORY: (typeof SERVICE_CATEGORIES)[number] =
 export const serviceInputSchema = z.object({
   name: z.string().trim().min(2, "Name is required"),
   description: z.string().trim().min(1, "Description is required"),
-  price: z.number().positive("Price must be greater than 0"),
+  /* Optional — leave blank for "Price on request". When given it must be a
+     real price, so 0 can never be saved to mean "unknown". */
+  price: z.number().positive("Price must be greater than 0").optional(),
   duration: z.number().int().positive("Duration must be greater than 0"),
   category: z.enum(SERVICE_CATEGORIES),
   /* The Service model has always had an `image` field, but it was absent

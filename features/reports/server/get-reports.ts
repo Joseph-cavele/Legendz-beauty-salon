@@ -13,7 +13,8 @@ interface PopulatedBooking {
 const STATUSES = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "NO_SHOW"] as const
 
 function bookingTotal(b: PopulatedBooking) {
-  return b.services.reduce((sum, s) => sum + s.price, 0)
+  // Unpriced ("price on request") services contribute nothing to revenue.
+  return b.services.reduce((sum, s) => sum + (s.price ?? 0), 0)
 }
 
 function monthLabel(key: string) {
@@ -32,9 +33,15 @@ export async function getReports(): Promise<ReportsData> {
   const totalBookings = bookings.length
   const completed = bookings.filter((b) => b.status === "COMPLETED")
   const cancelled = bookings.filter((b) => b.status === "CANCELLED")
-  const totalRevenue = completed.reduce((sum, b) => sum + bookingTotal(b), 0)
+  // Earned = completed; booked = confirmed/pending, not yet done. The
+  // headline total is both, matching the dashboard's revenue card.
+  const earnedRevenue = completed.reduce((sum, b) => sum + bookingTotal(b), 0)
+  const bookedRevenue = bookings
+    .filter((b) => b.status === "CONFIRMED" || b.status === "PENDING")
+    .reduce((sum, b) => sum + bookingTotal(b), 0)
+  const totalRevenue = earnedRevenue + bookedRevenue
   const completedCount = completed.length
-  const avgBookingValue = completedCount ? Math.round(totalRevenue / completedCount) : 0
+  const avgBookingValue = completedCount ? Math.round(earnedRevenue / completedCount) : 0
   const cancellationRate = totalBookings
     ? Math.round((cancelled.length / totalBookings) * 100)
     : 0
@@ -70,7 +77,7 @@ export async function getReports(): Promise<ReportsData> {
     for (const s of b.services) {
       const entry = serviceMap.get(s.name) ?? { count: 0, revenue: 0 }
       entry.count += 1
-      if (b.status === "COMPLETED") entry.revenue += s.price
+      if (b.status === "COMPLETED") entry.revenue += s.price ?? 0
       serviceMap.set(s.name, entry)
     }
   }
@@ -97,6 +104,8 @@ export async function getReports(): Promise<ReportsData> {
   return {
     summary: {
       totalRevenue,
+      earnedRevenue,
+      bookedRevenue,
       completedCount,
       avgBookingValue,
       cancellationRate,

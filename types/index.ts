@@ -12,10 +12,13 @@ export interface Service {
   id: string
   name: string
   description: string
-  price: number
+  /** Rand. Absent = not confirmed yet — display with formatPrice(). */
+  price?: number
   duration: number
   category?: string
   image?: string
+  /** A combo's checklist of what it bundles. */
+  includes?: string[]
 }
 
 export interface Stylist {
@@ -82,7 +85,12 @@ export interface CreateBookingInput {
 }
 
 export interface DashboardStats {
+  /** Earned + booked: everything the salon has taken or has coming in. */
   totalRevenue: number
+  /** From COMPLETED appointments — money already taken. */
+  earnedRevenue: number
+  /** From CONFIRMED / PENDING appointments — booked, not yet done. */
+  bookedRevenue: number
   totalAppointments: number
   todaysAppointments: number
   pendingAppointments: number
@@ -129,22 +137,32 @@ export interface BookingListItem {
   customerEmail: string
   stylistName: string
   serviceNames: string[]
+  /** Sum of the priced services only. */
   total: number
+  /** Display string from formatTotal() — never "R 0" for unpriced services. */
+  totalDisplay: string
   bookingDate: string
   bookingTime: string
   status: BookingStatus
+  /** Recorded on the dashboard for a walk-in client. */
+  walkIn: boolean
 }
 
 export interface CustomerWithStats {
   id: string
   name: string
+  /** "" when the client gave none (common for walk-ins). */
   email: string
+  phone: string
   totalBookings: number
 }
 
 export interface ReportsData {
   summary: {
+    /** Earned + booked (see DashboardStats). */
     totalRevenue: number
+    earnedRevenue: number
+    bookedRevenue: number
     completedCount: number
     avgBookingValue: number
     cancellationRate: number

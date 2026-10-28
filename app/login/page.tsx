@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { SignInCard } from "@/features/auth/components/sign-in-card"
 
 export const metadata: Metadata = {
-  title: "Sign in — Patrick Dreadlocks & Beauty",
+  title: "Sign in — Legendz Beauty Salon",
 }
 
 export default function LoginPage() {

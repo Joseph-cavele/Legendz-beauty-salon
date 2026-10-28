@@ -4,10 +4,17 @@ const serviceSchema = new Schema(
   {
     name: { type: String, required: true },
     description: { type: String, required: true },
-    price: { type: Number, required: true },
+    /* Optional: a service without a confirmed price shows "Price on
+       request" everywhere (lib/currency.ts formatPrice) and adds nothing to
+       a booking's amount. Never store 0 to mean "unknown". */
+    price: { type: Number, min: 0 },
     duration: { type: Number, required: true },
     category: { type: String, default: "Dreadlocks" },
     image: { type: String },
+    /* Stable key for scripts/seed.ts, which upserts on { category, slug } so
+       re-running it never duplicates a service. Optional: services created
+       in the dashboard don't need one. */
+    slug: { type: String },
   },
   { timestamps: true }
 )
@@ -24,6 +31,13 @@ serviceSchema.index({ name: 1 })
 // Catalogue and picker, which group by category and order by name within
 // it. `name` as the second key means the grouped read is sorted for free.
 serviceSchema.index({ category: 1, name: 1 })
+
+// The seed's upsert key. Partial, so dashboard-created services (no slug)
+// are not forced to be unique against each other.
+serviceSchema.index(
+  { category: 1, slug: 1 },
+  { unique: true, partialFilterExpression: { slug: { $type: "string" } } }
+)
 
 export type ServiceDoc = InferSchemaType<typeof serviceSchema>
 export const ServiceModel = models.Service || model("Service", serviceSchema)

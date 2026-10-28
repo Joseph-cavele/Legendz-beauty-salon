@@ -12,7 +12,7 @@ export default async function DashboardLayout({
 
   return (
     <DashboardNavProvider>
-      <div className="flex min-h-full flex-1 flex-col">
+      <div className="legendz-dash flex min-h-full flex-1 flex-col">
         <Topbar name={session?.user?.name} email={session?.user?.email} />
         <div className="flex flex-1">
           <Sidebar name={session?.user?.name} email={session?.user?.email} />

@@ -11,14 +11,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { SALON_PHONE, WHATSAPP_MESSAGES, whatsappLink } from "@/lib/salon-contact"
+import { SALON_NAME, SALON_PHONE, WHATSAPP_MESSAGES, whatsappLink } from "@/lib/salon-contact"
+import { salonImages } from "@/lib/salon-assets"
 
-/* ══════════════════════════════════════════════════════════════════════
-   IMAGE SLOT — the medallion, cropped out of the full logo poster. Swap
-   this path for your own file any time; left as "", a fuchsia ring holds
-   the space so the bar keeps its shape.
-   ══════════════════════════════════════════════════════════════════════ */
-const LOGO_MARK = "/images/logo/patrick-mark.png"
+/* IMAGE SLOT — the logo mark, from lib/salon-assets.ts. Set to "" and a
+   dashed gold ring holds the space so the bar keeps its shape. */
+const LOGO_MARK = salonImages.logo.src
 
 /* Contact details come from lib/salon-contact.ts. They used to be a second
    hardcoded copy here, which is how the header kept a placeholder number
@@ -26,7 +24,7 @@ const LOGO_MARK = "/images/logo/patrick-mark.png"
 const PHONE = SALON_PHONE
 const WHATSAPP_HREF = whatsappLink(WHATSAPP_MESSAGES.general)
 
-/* Ordered to match the Rosé Luxe reference. Every link now resolves to a real
+/* Ordered to match the original design reference. Every link now resolves to a real
    section — `#contact` is the contact form, hours and map (SiteContact), which
    took the anchor over from the footer.
 
@@ -69,43 +67,43 @@ export function SiteHeader({
       className="sticky inset-x-0 top-0 z-50 md:px-6"
     >
       <div
-        className={`mx-auto flex max-w-7xl items-center justify-between rounded-b-[24px] bg-rose-surface px-5 py-3.5 transition-shadow duration-500 md:mt-3 md:rounded-[24px] md:px-7 xl:px-9 ${
+        className={`mx-auto flex max-w-7xl items-center justify-between rounded-b-[24px] bg-brand-surface px-5 py-3.5 transition-shadow duration-500 md:mt-3 md:rounded-[24px] md:px-7 xl:px-9 ${
           scrolled
-            ? "shadow-[0_10px_40px_-12px_rgba(39,33,42,0.18)]"
-            : "shadow-[0_2px_18px_-10px_rgba(39,33,42,0.15)]"
+            ? "shadow-[0_10px_40px_-12px_rgba(0,0,0,0.18)]"
+            : "shadow-[0_2px_18px_-10px_rgba(0,0,0,0.15)]"
         }`}
       >
         <Link
           href={logoHref}
-          aria-label="Patrick Dreadlocks & Beauty Salon — admin login"
-          className="flex items-center gap-3 leading-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-accent"
+          aria-label={`${SALON_NAME} — admin login`}
+          className="flex items-center gap-3 leading-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent"
         >
           {LOGO_MARK ? (
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-rose-mid">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-line">
               <NextImage
                 src={LOGO_MARK}
                 alt=""
                 width={40}
                 height={40}
                 priority
-                className="size-8 object-contain"
+                className="size-10 rounded-full object-cover"
               />
             </span>
           ) : (
             <span
               aria-hidden
-              className="grid size-10 shrink-0 place-items-center rounded-full border border-dashed border-rose-accent/50 text-[8px] font-semibold tracking-[0.1em] text-rose-accent uppercase"
+              className="grid size-10 shrink-0 place-items-center rounded-full border border-dashed border-brand-accent/50 text-[8px] font-semibold tracking-[0.1em] text-brand-accent uppercase"
             >
               Logo
             </span>
           )}
 
           <span className="flex flex-col">
-            <span className="font-display text-2xl leading-none font-medium text-rose-ink sm:text-[1.6rem]">
-              Patrick
+            <span className="font-display text-2xl leading-none font-medium text-brand-text sm:text-[1.6rem]">
+              Legendz
             </span>
-            <span className="mt-1 font-ui text-[7px] font-semibold tracking-[0.26em] text-rose-accent uppercase sm:text-[9px]">
-              Dreadlocks &amp; Beauty
+            <span className="mt-1 font-ui text-[7px] font-semibold tracking-[0.26em] text-brand-accent uppercase sm:text-[9px]">
+              Beauty Salon
             </span>
           </span>
         </Link>
@@ -117,17 +115,17 @@ export function SiteHeader({
             <a
               key={link.label}
               href={link.href}
-              className={`group relative font-ui text-sm font-medium transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-accent ${
+              className={`group relative font-ui text-sm font-medium transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent ${
                 active === link.label
-                  ? "text-rose-accent"
-                  : "text-rose-ink/75 hover:text-rose-accent"
+                  ? "text-brand-accent"
+                  : "text-brand-text/75 hover:text-brand-accent"
               }`}
             >
               {link.label}
               {/* Scaled rather than widened, so it never touches layout. */}
               <span
                 aria-hidden
-                className={`absolute inset-x-0 -bottom-1.5 h-px origin-left bg-rose-accent transition-transform duration-300 ease-out ${
+                className={`absolute inset-x-0 -bottom-1.5 h-px origin-left bg-brand-accent transition-transform duration-300 ease-out ${
                   active === link.label
                     ? "scale-x-100"
                     : "scale-x-0 group-hover:scale-x-100 group-focus-visible:scale-x-100"
@@ -141,7 +139,7 @@ export function SiteHeader({
           <a
             href={`tel:${PHONE}`}
             aria-label="Call the salon"
-            className="hidden size-9 place-items-center rounded-full text-rose-accent transition-colors duration-300 hover:bg-rose-mid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-accent sm:grid"
+            className="hidden size-9 place-items-center rounded-full text-brand-accent transition-colors duration-300 hover:bg-brand-line focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent sm:grid"
           >
             <Phone className="size-4" />
           </a>
@@ -150,14 +148,14 @@ export function SiteHeader({
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Message the salon on WhatsApp"
-            className="hidden size-9 place-items-center rounded-full bg-rose-mid text-rose-accent transition-colors duration-300 hover:bg-rose-accent hover:text-rose-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-accent sm:grid"
+            className="hidden size-9 place-items-center rounded-full bg-brand-line text-brand-accent transition-colors duration-300 hover:bg-brand-accent hover:text-brand-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent sm:grid"
           >
             <MessageCircle className="size-4" />
           </a>
 
           <Link
             href="/book"
-            className="hidden items-center rounded-full bg-rose-accent px-6 py-2.5 font-ui text-sm font-semibold text-rose-surface transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-10px_rgba(236,72,153,0.85)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-accent active:translate-y-0 sm:inline-flex"
+            className="hidden items-center rounded-full bg-brand-accent px-6 py-2.5 font-ui text-sm font-semibold text-brand-on-accent transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-10px_color-mix(in_srgb,var(--lz-gold)_85%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent active:translate-y-0 sm:inline-flex"
           >
             Book Now
           </Link>
@@ -165,7 +163,7 @@ export function SiteHeader({
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label="Open menu"
-              className="inline-flex size-10 items-center justify-center text-rose-ink lg:hidden"
+              className="inline-flex size-10 items-center justify-center text-brand-text lg:hidden"
             >
               <Menu className="size-5" />
             </DropdownMenuTrigger>

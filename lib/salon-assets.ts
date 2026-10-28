@@ -1,32 +1,160 @@
-// Curated selections from /public/Assets — real salon photography.
-// Grouped by the role each image plays on the marketing site so the hashed
-// filenames stay out of JSX. (Watermarked / overlaid shots are intentionally
-// excluded during curation.)
-const asset = (file: string) => `/Assets/${file}`
+/* ══════════════════════════════════════════════════════════════════════
+   IMAGE SLOTS — every photograph and the logo the site shows, in one place.
+
+   Two sources:
+     /public/legendz/  the salon's OWN photos (Legendz clients, the salon).
+     /public/images/   images the site owner added from the internet
+                       (2026-10-13) for Braids, Nails, Hair and Weave, which
+                       had no Legendz photo yet. They are NOT Legendz work:
+                       swap each for the salon's own photo as soon as one
+                       exists, and confirm the right to use any that stay.
+                       Never use them in "Recent Work", which claims to be
+                       the salon's own work.
+
+   To fill a slot: put the file in /public/legendz/, change that one path
+   below, and update its `alt` so it describes what the photo shows.
+   ══════════════════════════════════════════════════════════════════════ */
+
+const photo = (file: string) => encodeURI(`/legendz/${file}`)
+/** Internet image from /public/images — see the note above. */
+const stock = (file: string) => encodeURI(`/images/${file}`)
+const placeholder = (name: string) => `/legendz/placeholders/${name}.svg`
+
+export type ImageSlot = { src: string; alt: string }
 
 export const salonImages = {
-  /** Editorial hero portrait — long knotless braids. */
-  hero: asset("8e79e5804a36e3969b4c148411d760ab.jpg"),
+  /** Square logo mark — header, login card, dashboard sidebar. */
+  logo: { src: photo("logo.jpg"), alt: "Legendz logo" },
 
-  /** Portrait accent used in the closing CTA band. */
-  ctaPortrait: asset("6f1739833131b8596e9f259a47d16184.jpg"),
+  /** Full-bleed hero backdrop on the home page and /book. */
+  hero: {
+    src: photo("IMG-20261002-WA0032.jpg"),
+    alt: "Client with waist-length locs seated in front of the Legendz sign",
+  },
 
-  /** Overlapping collage for the "why us" band. */
-  collage: [
-    asset("1e60d50b163af6c4acf12122730c6865.jpg"), // loc retwist, in the chair
-    asset("9c4da6a37816c126b2dda8d8d62c9486.jpg"), // afro + sculpted beard
-    asset("5d3f39333d17ffd5932ab7936a93e94c.jpg"), // coil texture, close up
-  ],
+  /** About section main frame. 4:3 crop. */
+  salonInterior: {
+    src: photo("IMG-20261002-WA0010.jpg"),
+    alt: "Stylist working on a client's long locs inside Legendz, beside the salon's service banner",
+  },
 
-  /** Mixed "recent work" gallery. */
+  /** About section inset and login backdrop. Square. */
+  salonStation: {
+    src: photo("IMG-20261002-WA0002.jpg"),
+    alt: "Locs styled into a sculpted updo with twisted sides, in front of the Legendz sign",
+  },
+
+  /** Fallback headshot for stylists without an uploaded photo. Square. */
+  stylist: { src: placeholder("stylist"), alt: "Placeholder – stylist portrait" },
+
+  /** One photo per service category, used on cards, /services and /book. */
+  category: {
+    Dreadlocks: {
+      src: photo("IMG-20261002-WA0001.jpg"),
+      alt: "Curled locs with copper highlights gathered into a high puff",
+    },
+    Braids: {
+      src: photo("15102f85a854dead8f1d56fb95a6bd04.jpg"),
+      alt: "Knotless braids being installed, parted in neat rows at the nape",
+    },
+    Nails: {
+      src: photo("0271f82f427a22b7db3b01261f55d5f8 (1) (1).jpg"),
+      alt: "Almond nails in nude and brown with gold chrome swirls and studs",
+    },
+    Hair: {
+      src: photo("blow out.jpg"),
+      alt: "Shoulder-length natural hair blown out full and smooth",
+    },
+    Weave: {
+      src: photo("weave installations.jpg"),
+      alt: "Sleek, straight, jet-black install with a natural-looking parting",
+    },
+  } as Record<string, ImageSlot>,
+
+  /** Per-service photos, keyed by the exact service name. Override the
+      category photo so two cards side by side never show the same picture. */
+  service: {
+    "Twist and style": {
+      src: photo("IMG-20261002-WA0011.jpg"),
+      alt: "Back view of locs twisted and rolled into a low updo",
+    },
+    "Gel on natural": {
+      src: photo("placeholders/17881d2e61a3b14eceeb9a8bde501cd5.jpg"),
+      alt: "Short natural nails in glossy deep-red gel",
+    },
+    "Gel on tips": {
+      src: stock("128cc34ee97e387010ffbe5a229cc58b.jpg"),
+      alt: "Almond nails with brown and cream French tips, polka dots and a painted flower",
+    },
+    Art: {
+      src: photo("3126f1fb6afa2c81562e8a17a93d26ef.jpg"),
+      alt: "Almond nails with red French tips and a red flower design",
+    },
+    Acrylic: {
+      src: photo("66bb64901b805bae731095695b0484e7 (1).jpg"),
+      alt: "Square nails with pink French tips, animal-print accents and 3D flowers",
+    },
+    /* Carries another nail artist's watermark (@arnold_nails_tz) — replace
+       first, or confirm permission to use it. */
+    "Gel Style": {
+      src: photo("52e7cef63b801a2ced88de4364daf9d6.jpg"),
+      alt: "Almond nails with gold chrome French tips and floral accents",
+    },
+    Knotless: {
+      src: stock("long braids.jpg"),
+      alt: "Long knotless braids in brown and honey blonde with loose curly ends",
+    },
+    "Box braids": {
+      src: stock("short braids.jpg"),
+      alt: "Shoulder-length box braids with a centre part and curly ends",
+    },
+    Curly: {
+      src: photo("ae240a43e2b6d2bfe1a2925b0fef824f.jpg"),
+      alt: "Long, defined curly braids framing the face",
+    },
+    "Start with extension": {
+      src: stock("cf93077137ad8a0aeee83293487a8021.jpg"),
+      alt: "Long locs in copper and dark brown, worn loose past the shoulders",
+    },
+    "Dye and Wash": {
+      src: stock("36ac441dfc05ef430e51de7ec54aa331.jpg"),
+      alt: "Shoulder-length locs coloured with honey-blonde highlights and gold cuffs",
+    },
+  } as Record<string, ImageSlot>,
+
+  /** Banner slide on /services for braids and weaves. Legendz has no wig
+      service; this lace-front photo only illustrates the weave slide. */
+  /** Salon interior — the /book page hero and the "Book your visit" slide
+      on /services. Not the Legendz salon: replace with a photo of the real
+      salon when there is one. */
+  bookingBanner: {
+    src: stock("booking images.jpg"),
+    alt: "Salon styling stations with gold chairs and backlit mirrors",
+  },
+
+  weaveBanner: {
+    src: stock("wig installation.jpg"),
+    alt: "Long, straight lace-front install with an inset close-up of the hairline",
+  },
+
+  /** "Recent work" gallery tiles. Portrait, 4:5. All dreadlocks work.
+      Each tile is a different look, and none of these files is used in any
+      other slot — don't repeat a photo (or the same client's same style)
+      that already appears elsewhere on the site. */
   gallery: [
-    { src: asset("23a95aa64290b8bac7bf047bfe12245c.jpg"), label: "Twists & Braids" },
-    { src: asset("02ae5cbe906eb5a414d67e4c64fbc554.jpg"), label: "Curls & Fades" },
-    { src: asset("0c0b1644a0cc29d0cd0db603f34d5b7f.jpg"), label: "Nail Artistry" },
-    { src: asset("76b98164c809735eb05baded97d88d9a.jpg"), label: "Natural Cuts" },
-    { src: asset("b8e7674c6ebad42e6a4f79bb3b5d7055.jpg"), label: "Barbering" },
-    { src: asset("9b9bed10c73cbff86d8c17b3b2fc36f3.jpg"), label: "Nail Design" },
-    { src: asset("15b587feda7162d924095f282f60059e.jpg"), label: "Grooming" },
-    { src: asset("66bb64901b805bae731095695b0484e7.jpg"), label: "Press-On Sets" },
+    { src: photo("IMG-20261002-WA0003.jpg"), label: "Twists & Curled Ends", alt: "Back view of twisted locs finished with curled ends" },
+    { src: photo("IMG-20261002-WA0033.jpg"), label: "High Loc Bun", alt: "Locs twisted up from the hairline into a high bun" },
+    { src: photo("IMG-20261002-WA0038.jpg"), label: "Curls & Statement Twist", alt: "Curled loc updo with a single long twist falling at the front" },
+    { src: photo("IMG-20261002-WA0044.jpg"), label: "Criss-Cross Bun", alt: "Back view of locs criss-crossed up into a bun" },
+    { src: photo("IMG-20261002-WA0000.jpg"), label: "Twisted Updo", alt: "Top view of locs twisted back from the hairline into a coiled updo" },
+    { src: photo("IMG-20261002-WA0017.jpg"), label: "Twist & Curl", alt: "Twisted sides leading into a curled loc updo" },
   ],
 }
+
+/** The category photo for a service, falling back to the Dreadlocks slot. */
+export const categoryImage = (category: string | undefined): ImageSlot =>
+  (category && salonImages.category[category]) || salonImages.category.Dreadlocks
+
+/** A service's own photo if it has one, otherwise its category's. */
+export const serviceImage = (name: string, category: string | undefined): ImageSlot =>
+  salonImages.service[name] ?? categoryImage(category)

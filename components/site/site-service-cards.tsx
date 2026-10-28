@@ -26,7 +26,7 @@ function Rating({ rating, reviewCount }: Pick<FeaturedService, "rating" | "revie
 
   return (
     <span className="flex items-center gap-1.5">
-      <span className="font-ui text-xs font-semibold text-rose-ink">
+      <span className="font-ui text-xs font-semibold text-brand-text">
         {rating.toFixed(1)}
       </span>
 
@@ -37,14 +37,14 @@ function Rating({ rating, reviewCount }: Pick<FeaturedService, "rating" | "revie
             className={`size-3 ${
               i < Math.round(rating)
                 ? "fill-amber-400 text-amber-400"
-                : "fill-rose-mid text-rose-mid"
+                : "fill-brand-line text-brand-line"
             }`}
           />
         ))}
       </span>
 
       <span className="sr-only">{rating.toFixed(1)} out of 5, from {reviewCount} reviews</span>
-      <span aria-hidden className="font-ui text-xs text-rose-muted">
+      <span aria-hidden className="font-ui text-xs text-brand-muted">
         ({reviewCount})
       </span>
     </span>
@@ -62,7 +62,7 @@ export function SiteServiceCards() {
           whileInView="show"
           viewport={{ once: true, amount: 0.4 }}
           variants={fadeUp(reduce, 0, 16)}
-          className="text-center font-display text-[clamp(1.4rem,3vw,1.9rem)] font-medium tracking-[-0.01em] text-rose-ink"
+          className="text-center font-display text-[clamp(1.4rem,3vw,1.9rem)] font-medium tracking-[-0.01em] text-brand-text"
         >
           Our Services List
         </motion.h2>
@@ -75,13 +75,13 @@ export function SiteServiceCards() {
               whileInView="show"
               viewport={{ once: true, amount: 0.2 }}
               variants={fadeUp(reduce, (i % 3) * 0.09, 22)}
-              className="group flex flex-col rounded-[16px] border border-rose-mid/60 bg-rose-surface p-3 shadow-[0_10px_34px_-22px_rgba(39,33,42,0.35)] transition-shadow duration-300 hover:shadow-[0_18px_46px_-20px_rgba(39,33,42,0.4)]"
+              className="group flex flex-col rounded-[16px] border border-brand-line/60 bg-brand-surface p-3 shadow-[0_10px_34px_-22px_rgba(0,0,0,0.35)] transition-shadow duration-300 hover:shadow-[0_18px_46px_-20px_rgba(0,0,0,0.4)]"
             >
               {/* Pale panel with the photo held in a circle — the reference's
                   signature card treatment. The panel is what gives the circle
                   something to sit on; without it the image floats. */}
               <div className="grid place-items-center rounded-[12px] bg-[radial-gradient(ellipse_80%_80%_at_50%_50%,#fdeaf2_0%,#fdf4f7_100%)] py-7">
-                <div className="relative size-32 overflow-hidden rounded-full ring-8 ring-rose-surface/70">
+                <div className="relative size-32 overflow-hidden rounded-full ring-8 ring-brand-surface/70">
                   <NextImage
                     src={service.image}
                     alt={service.alt}
@@ -93,11 +93,11 @@ export function SiteServiceCards() {
               </div>
 
               <div className="flex flex-1 flex-col px-2 pt-4 pb-1">
-                <h3 className="font-display text-base font-semibold text-rose-ink">
+                <h3 className="font-display text-base font-semibold text-brand-text">
                   {service.name}
                 </h3>
 
-                <p className="mt-1.5 flex-1 font-ui text-xs leading-[1.7] text-rose-muted">
+                <p className="mt-1.5 flex-1 font-ui text-xs leading-[1.7] text-brand-muted">
                   {service.description}
                 </p>
 
@@ -106,7 +106,7 @@ export function SiteServiceCards() {
                     and when ratings do arrive the two sit together rather than
                     the price being pushed off the card. */}
                 <div className="mt-3 flex items-center justify-between gap-3">
-                  <span className="font-ui text-xs font-bold text-rose-accent">
+                  <span className="font-ui text-xs font-bold text-brand-accent">
                     {service.from}
                   </span>
                   <Rating rating={service.rating} reviewCount={service.reviewCount} />
@@ -114,7 +114,7 @@ export function SiteServiceCards() {
 
                 <Link
                   href={`/services/${serviceSlug(service.name)}`}
-                  className="mt-4 w-full rounded-[10px] bg-rose-mid/70 px-4 py-2.5 text-center font-ui text-xs font-semibold text-rose-accent transition-colors duration-300 hover:bg-rose-accent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-accent"
+                  className="mt-4 w-full rounded-[10px] bg-brand-line/70 px-4 py-2.5 text-center font-ui text-xs font-semibold text-brand-accent transition-colors duration-300 hover:bg-brand-accent hover:text-brand-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent"
                 >
                   View details
                 </Link>

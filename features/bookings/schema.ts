@@ -1,5 +1,13 @@
 import { z } from "zod"
 
+/**
+ * Paystack checkout. Off for Legendz: payments are out of scope for now, and
+ * most services are "price on request", so there is no amount to charge. The
+ * wizard hides "Pay now" and POST /api/bookings refuses ONLINE while false.
+ * The Paystack code is untouched — flip this once Legendz has its own keys.
+ */
+export const ONLINE_PAYMENTS_ENABLED = false
+
 export const createBookingSchema = z.object({
   customerName: z.string().trim().min(2, "Full name is required"),
   customerEmail: z.string().trim().email("Enter a valid email address"),

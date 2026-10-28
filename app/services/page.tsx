@@ -2,15 +2,14 @@ import type { Metadata } from "next"
 
 import { SiteFooter } from "@/components/site/site-footer"
 import { SiteHeader } from "@/components/site/site-header"
-import { SiteOffers } from "@/components/site/site-offers"
 import { SiteServiceCards } from "@/components/site/site-service-cards"
 import { SiteServicesCatalog } from "@/components/site/site-services-catalog"
 import { SiteServicesHero } from "@/components/site/site-services-hero"
 
 export const metadata: Metadata = {
-  title: "Services & Prices | Patrick Dreadlocks & Beauty",
+  title: "Services & Prices | Legendz Beauty Salon",
   description:
-    "Every service we offer and what it costs — locs, braids, cuts and wig work in Kempton Park. No hidden pricing.",
+    "Dreadlocks, braids, nails, hair and weaves at Legendz Beauty Salon in Zwelethemba, Worcester — every service and its price.",
 }
 
 /**
@@ -18,20 +17,17 @@ export const metadata: Metadata = {
  * "Our Services List" heading over a 3×2 grid of medallion cards, then the
  * footer.
  *
- * Two sections sit below that the reference has no equivalent for — the
- * discount cards, and the full nineteen-service price list. Both were asked
- * for separately and neither displaces anything from the reference layout,
- * so they follow it rather than interrupt it.
+ * The full price list sits below that. The promotional offers section was
+ * removed in the Legendz rebrand: there is no promotion, and most prices are
+ * not confirmed yet. It is in git history if one is wanted later.
  */
 export default function ServicesPage() {
   return (
-    <div className="flex flex-1 flex-col bg-rose-ground text-rose-ink selection:bg-rose-accent selection:text-rose-surface">
+    <div className="flex flex-1 flex-col bg-brand-bg text-brand-text selection:bg-brand-accent selection:text-brand-on-accent">
       <SiteHeader active="Services" />
 
       <SiteServicesHero />
       <SiteServiceCards />
-
-      <SiteOffers />
 
       <section className="pb-16 sm:pb-20">
         <SiteServicesCatalog />

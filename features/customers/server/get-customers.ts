@@ -20,7 +20,8 @@ export async function getCustomers(): Promise<CustomerWithStats[]> {
   return customers.map((c) => ({
     id: String(c._id),
     name: c.name,
-    email: c.email,
+    email: c.email ?? "",
+    phone: c.phone ?? "",
     totalBookings: countByCustomer.get(String(c._id)) ?? 0,
   }))
 }

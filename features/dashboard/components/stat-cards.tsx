@@ -6,20 +6,28 @@ import type { DashboardStats } from "@/types"
 
 export function StatCards({ stats }: { stats: DashboardStats }) {
   /* Tints were emerald/amber/rose/sky — five unrelated stock hues that
-     predated the rosé theme and read as a different product next to it.
+     predated the brand theme and read as a different product next to it.
      They now follow one rule, expressed in theme tokens so they track the
      palette instead of drifting from it again:
 
-       fuchsia  = what the salon earned or is committed to (the numbers
+       gold     = what the salon earned or is committed to (the numbers
                   the owner opens the page for)
-       mauve    = what's merely waiting or is roster context
+       muted    = what's merely waiting or is roster context
 
      The icons are decorative — the figures carry the meaning — so the
      restraint costs nothing and stops the row competing with the charts. */
-  const cards = [
+  const cards: {
+    label: string
+    value: string
+    detail?: string
+    icon: typeof Banknote
+    tint: string
+  }[] = [
     {
       label: "Total revenue",
       value: formatCurrency(stats.totalRevenue),
+      // Earned = completed visits; booked = confirmed appointments to come.
+      detail: `${formatCurrency(stats.earnedRevenue ?? 0)} earned · ${formatCurrency(stats.bookedRevenue ?? 0)} booked`,
       icon: Banknote,
       tint: "bg-primary/12 text-primary",
     },
@@ -60,7 +68,10 @@ export function StatCards({ stats }: { stats: DashboardStats }) {
                 <card.icon className="size-4" />
               </span>
             </div>
-            <span className="text-2xl font-semibold">{card.value}</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-2xl font-semibold">{card.value}</span>
+              {card.detail && <span className="text-xs text-muted-foreground">{card.detail}</span>}
+            </div>
           </CardContent>
         </Card>
       ))}

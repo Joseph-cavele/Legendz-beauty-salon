@@ -12,7 +12,7 @@ async function fetchServices(): Promise<Service[]> {
     id: String(s._id),
     name: s.name,
     description: s.description,
-    price: s.price,
+    price: s.price ?? undefined,
     duration: s.duration,
     category: s.category ?? DEFAULT_SERVICE_CATEGORY,
     image: s.image,

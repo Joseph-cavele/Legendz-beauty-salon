@@ -1,3 +1,4 @@
+import { brandedEmail, emailRow } from "@/emails/layout"
 import { escapeHtml } from "@/emails/escape-html"
 
 interface AppointmentCancelledEmailProps {
@@ -17,18 +18,16 @@ export function appointmentCancelledEmailHtml({
   bookingTime,
   reason,
 }: AppointmentCancelledEmailProps) {
-  return `
-    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-      <h2>Your appointment has been cancelled</h2>
-      <p>Hi ${escapeHtml(customerName)}, your appointment has been cancelled. Here were the details:</p>
+  return brandedEmail(`
+      <h2 style="margin-top: 0;">Your appointment has been cancelled</h2>
+      <p>Hi ${escapeHtml(customerName)}, your appointment at Legendz Beauty Salon has been cancelled. Here were the details:</p>
       <table style="width: 100%; border-collapse: collapse;">
-        <tr><td style="padding: 4px 0; color: #666;">Services</td><td>${escapeHtml(serviceNames.join(", "))}</td></tr>
-        <tr><td style="padding: 4px 0; color: #666;">Stylist</td><td>${escapeHtml(stylistName)}</td></tr>
-        <tr><td style="padding: 4px 0; color: #666;">Date</td><td>${escapeHtml(bookingDate)}</td></tr>
-        <tr><td style="padding: 4px 0; color: #666;">Time</td><td>${escapeHtml(bookingTime)}</td></tr>
+        ${emailRow("Services", escapeHtml(serviceNames.join(", ")))}
+        ${emailRow("Stylist", escapeHtml(stylistName))}
+        ${emailRow("Date", escapeHtml(bookingDate))}
+        ${emailRow("Time", escapeHtml(bookingTime))}
       </table>
       ${reason ? `<p><strong>Reason:</strong> ${escapeHtml(reason)}</p>` : ""}
-      <p>Please contact us if you'd like to book a new appointment.</p>
-    </div>
-  `
+      <p>To book a new appointment, reply to this email, WhatsApp us, or book online.</p>
+  `)
 }

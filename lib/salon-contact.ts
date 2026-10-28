@@ -1,131 +1,98 @@
 /* ══════════════════════════════════════════════════════════════════════
    THE SALON'S CONTACT DETAILS — one copy, imported by every public page.
 
-   The phone number and email below are real and were given by the owner
-   (2026-08-06). Treat them as such: they are printed on the site, dialled
-   from a phone and used to reach the business, so do not substitute a
-   placeholder into any of them "for now".
-
-   The street address is real too, given by the owner on the same day. It
-   was a bare suburb until then, because the site's own copy only ever
-   claimed "Kempton Park" and pointing the map at the area was honest where
-   inventing a street number would not have been.
-
-   This file used to say it was the single copy while the header, footer and
-   contact section each carried their own hardcoded duplicates. They now
-   import from here, so changing a number is a one-line edit again.
+   Legendz Beauty Salon, details supplied by the client (2026-10-11).
+   They are printed on the site, dialled from a phone and used to reach the
+   business, so do not substitute a placeholder into any of them.
 
    lib/models/Settings.ts holds the same details as editable defaults for
-   the dashboard. Once a server component reads that document and passes it
-   down, delete this file rather than leaving two sources to drift apart.
+   the dashboard. Kept in step by hand — that model cannot import this file.
    ══════════════════════════════════════════════════════════════════════ */
 
+export const SALON_NAME = "Legendz Beauty Salon"
+
+/** The public site's address, for the sitemap and robots.txt. Legendz has no
+    domain on record yet, so it follows NEXT_PUBLIC_APP_URL — set that on the
+    host once the site is live. */
+export const SALON_SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/+$/, "")
+
+/** The person customers deal with. */
+export const SALON_CONTACT_PERSON = "Luyanda Thabethe"
+
 /** Dialable form, for `tel:` links. International so it works from abroad. */
-export const SALON_PHONE = "+27747809371"
+export const SALON_PHONE = "+27827119728"
 
 /** Same number, spaced for reading. Never put this in an href. */
-export const SALON_PHONE_DISPLAY = "074 780 9371"
+export const SALON_PHONE_DISPLAY = "082 711 9728"
 
 /** wa.me wants the number with no "+", spaces or punctuation. */
-export const SALON_WHATSAPP = "27747809371"
+export const SALON_WHATSAPP = "27827119728"
 
 /** Mailbox the site links to. Not where the contact form delivers — that
     goes to OWNER_EMAIL, server-side. */
-export const SALON_EMAIL = "booking@patrickdreadlocks.co.za"
+export const SALON_EMAIL = "luyandathabethe2k@gmail.com"
 
-/** As printed on the site — the unit number included, so a customer knows
-    which shop to walk into once they arrive. */
-export const SALON_ADDRESS = "Shop 7, 26 Park St, Kempton Park, Johannesburg"
+/** As printed on the site. */
+export const SALON_ADDRESS = "Mtwazi Street, Zwelethemba, Worcester"
 
-/**
- * What the map is asked to find. Deliberately not `SALON_ADDRESS`: a leading
- * unit number ("Shop 7") is not part of the street address a geocoder
- * matches on, and feeding it one can drop the pin on the suburb centroid
- * instead of the building. The country is spelled out for the same reason —
- * there is a Park Street in most cities on earth.
- */
-export const SALON_MAP_ADDRESS = "26 Park St, Kempton Park, Johannesburg, South Africa"
+/** What the map is asked to find — country spelled out so the geocoder
+    doesn't pick a Worcester on another continent. */
+export const SALON_MAP_ADDRESS = "Mtwazi Street, Zwelethemba, Worcester, South Africa"
 
 /** Pre-encoded, because both the map embed and the directions link use it. */
 export const SALON_MAP_QUERY = encodeURIComponent(SALON_MAP_ADDRESS)
 
 /**
+ * Opening hours. Also the booking window: the wizard offers start times from
+ * OPEN until the last half-hour slot before CLOSE.
+ */
+export const SALON_HOURS = {
+  days: "Monday – Sunday",
+  open: "08:30",
+  close: "18:00",
+} as const
+
+export const SALON_HOURS_DISPLAY = `${SALON_HOURS.days}, ${SALON_HOURS.open}–${SALON_HOURS.close}`
+
+/**
  * The salon's social profiles.
  *
  * A URL here is a public claim in the same way the phone number is, and a
- * wrong one is worse than a missing one: a guessed handle does not 404, it
- * sends customers to a stranger's page that looks like it could be the
- * salon's. So they start empty and get filled in with real ones.
- *
- * The icons still show while a URL is blank — the footer renders that one as
- * an inert mark rather than a link, so the row looks complete without
- * promising a destination that isn't there. Set `url` to the full profile
- * URL (not the handle) and it becomes a working link with no other change.
+ * wrong one is worse than a missing one: a guessed handle sends customers to
+ * a stranger's page. So it starts empty and gets the real URL from the
+ * client. While blank, the footer shows the icon as an inert mark rather
+ * than a link.
  */
 export type SalonSocial = {
-  /** Used as the accessible name: "Patrick Dreadlocks & Beauty on Facebook". */
+  /** Used as the accessible name: "Legendz Beauty Salon on Facebook". */
   label: string
   /** Full profile URL. Empty means "not set up yet" — the link is not shown. */
   url: string
 }
 
 export const SALON_SOCIALS: SalonSocial[] = [
-  /* Canonical form of the page URL. The link as supplied was
-     `web.facebook.com/patrickdreadlocksa/?_rdc=1&_rdr#`, which is what the
-     address bar shows after Facebook's own redirect — `_rdc`/`_rdr` are its
-     redirect bookkeeping and `web.` is a regional host. Neither belongs in
-     a link we publish: the query string is meaningless to anyone arriving
-     fresh, and `www.` resolves everywhere. */
-  { label: "Facebook", url: "https://www.facebook.com/patrickdreadlocksa" },
-  /* Same treatment: the supplied link carried an `fbclid=IwY2xjawTierxw…`
-     tracking token, ~180 characters of Facebook click ID picked up by
-     whatever shared the link. It identifies the click that produced the
-     copy, not the profile, and publishing it would attach that token to
-     every visitor who followed it from the footer. */
-  { label: "Instagram", url: "https://www.instagram.com/patrickdreadlocksa" },
-  /* The profile itself, replacing the `vt.tiktok.com` shortener this
-     started as — a shortener is a hop the platform can retire, and it tells
-     a visitor hovering the icon nothing about where they are going.
-
-     `?_r=1&_t=ZS-98gEngGF9Yq` stripped: TikTok's share parameters, which
-     identify the share that produced the copy rather than the profile.
-
-     Note the handle does not match the other two — @ikponmwosaobasogi
-     rather than patrickdreadlocksa. Confirmed as correct by the owner. */
-  { label: "TikTok", url: "https://www.tiktok.com/@ikponmwosaobasogi" },
+  /* TODO(client): the "Legendz Beauty Salon" Facebook page URL. */
+  { label: "Facebook", url: "" },
 ]
 
 /**
  * Opening lines for the WhatsApp links, written from the customer's side —
- * `?text=` prefills the customer's compose box, so anything here is words
- * they are about to appear to have said. Kept short and easy to type over
- * for that reason: a long scripted message reads as a bot the moment it
- * lands in the salon's inbox, and nobody deletes a paragraph before
- * sending.
- *
- * They differ by where the button was pressed, because that is the one
- * thing the salon cannot see from the message alone.
+ * `?text=` prefills the customer's compose box. Kept short and easy to type
+ * over.
  */
 export const WHATSAPP_MESSAGES = {
   /** Header and contact section — no context beyond being on the site. */
-  general: "Hi Patrick Dreadlocks & Beauty! I'd like to ask about your services.",
+  general: "Hi Legendz Beauty Salon! I'd like to ask about your services.",
   /** Someone part-way through the booking flow who needs a hand. */
-  booking: "Hi Patrick Dreadlocks & Beauty! I need some help with my booking.",
+  booking: "Hi Legendz Beauty Salon! I need some help with my booking.",
 } as const
 
 /**
  * wa.me link with the compose box prefilled.
  *
  * Always go through this rather than writing the URL inline — the message
- * has to be percent-encoded, and a raw apostrophe or newline in a `?text=`
- * that skipped encoding truncates the message at that character.
+ * has to be percent-encoded, and apostrophes are encoded too because some
+ * Android link handlers end the URL at the first raw one.
  */
 export const whatsappLink = (message: string) =>
-  `https://wa.me/${SALON_WHATSAPP}?text=${
-    /* `encodeURIComponent` leaves apostrophes raw — they are legal in a query
-       string, so this is not a bug in it. But WhatsApp is reached through a
-       deep link handed to the OS, and some Android link handlers end the URL
-       at the first apostrophe, which would deliver a message cut off
-       mid-word. Encoding it costs nothing and removes the question. */
-    encodeURIComponent(message).replace(/'/g, "%27")
-  }`
+  `https://wa.me/${SALON_WHATSAPP}?text=${encodeURIComponent(message).replace(/'/g, "%27")}`

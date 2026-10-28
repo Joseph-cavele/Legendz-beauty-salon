@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
+import { formatTotal } from "@/lib/currency"
 import { revalidateTag } from "next/cache"
 import { connectDB } from "@/lib/db"
 import { BookingModel } from "@/lib/models/Booking"
 import { NotificationModel } from "@/lib/models/Notification"
 import { updateBookingStatusSchema } from "@/features/bookings/schema"
-import { resend } from "@/lib/resend"
+import { emailFrom, EMAIL_REPLY_TO, resend } from "@/lib/resend"
 import { appointmentConfirmedEmailHtml } from "@/emails/appointment-confirmed"
 import { appointmentCancelledEmailHtml } from "@/emails/appointment-cancelled"
+import { requireOwner } from "@/lib/auth-guard"
 
 interface PopulatedBooking {
   _id: unknown
   customer: { name: string; email: string }
   stylist: { name: string }
-  services: { name: string }[]
+  services: { name: string; price?: number | null }[]
   bookingDate: string
   bookingTime: string
   status: string
@@ -22,6 +24,9 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requireOwner()
+  if (denied) return denied
+
   const { id } = await params
   const body = await req.json()
   const parsed = updateBookingStatusSchema.safeParse(body)
@@ -40,7 +45,7 @@ export async function PATCH(
   const booking = await BookingModel.findById(id)
     .populate("customer", "name email")
     .populate("stylist", "name")
-    .populate("services", "name")
+    .populate("services", "name price")
     .lean<PopulatedBooking>()
 
   if (!booking) {
@@ -51,7 +56,7 @@ export async function PATCH(
   await NotificationModel.updateMany({ bookingId: id, read: false }, { read: true })
 
   // Status changes move bookings between the dashboard's counts and revenue.
-  revalidateTag("dashboard", "max")
+  revalidateTag("dashboard", { expire: 0 })
 
   const serviceNames = booking.services.map((s) => s.name)
 
@@ -62,17 +67,19 @@ export async function PATCH(
     const message =
       status === "CONFIRMED"
         ? {
-            subject: "Your appointment is booked & confirmed",
+            subject: "Legendz Beauty Salon — your appointment is confirmed",
             html: appointmentConfirmedEmailHtml({
               customerName: booking.customer.name,
               stylistName: booking.stylist.name,
               serviceNames,
               bookingDate: booking.bookingDate,
               bookingTime: booking.bookingTime,
+              // Same price line as the confirmation sent at booking time.
+              totalDisplay: formatTotal(booking.services.map((s) => s.price)),
             }),
           }
         : {
-            subject: "Appointment Cancelled",
+            subject: "Legendz Beauty Salon — appointment cancelled",
             html: appointmentCancelledEmailHtml({
               customerName: booking.customer.name,
               stylistName: booking.stylist.name,
@@ -85,8 +92,9 @@ export async function PATCH(
 
     try {
       const { error } = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
+        from: emailFrom(),
         to: booking.customer.email,
+        replyTo: EMAIL_REPLY_TO,
         subject: message.subject,
         html: message.html,
       })

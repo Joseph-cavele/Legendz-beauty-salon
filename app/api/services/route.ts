@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db"
 import { ServiceModel } from "@/lib/models/Service"
 import { serviceInputSchema } from "@/features/services/schema"
 import { getServices } from "@/features/services/server/get-services"
+import { requireOwner } from "@/lib/auth-guard"
 
 export async function GET() {
   const services = await getServices()
@@ -11,6 +12,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireOwner()
+  if (denied) return denied
+
   const body = await req.json()
   const parsed = serviceInputSchema.safeParse(body)
 
@@ -26,8 +30,8 @@ export async function POST(req: NextRequest) {
 
   // A new service changes both the services list and the dashboard's
   // services-performance/revenue figures.
-  revalidateTag("services", "max")
-  revalidateTag("dashboard", "max")
+  revalidateTag("services", { expire: 0 })
+  revalidateTag("dashboard", { expire: 0 })
 
   return NextResponse.json({ id: String(service._id) }, { status: 201 })
 }

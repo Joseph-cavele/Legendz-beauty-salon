@@ -24,6 +24,7 @@ import {
 import { useServices } from "@/features/bookings/hooks/use-services"
 import { useDeleteService } from "@/features/services/hooks/use-delete-service"
 import { ServiceFormDialog } from "@/features/services/components/service-form-dialog"
+import { formatPrice } from "@/lib/currency"
 import type { Service } from "@/types"
 
 function formatDuration(minutes: number) {
@@ -95,7 +96,7 @@ export function ServicesManagement() {
                   <div className="flex min-w-0 flex-col">
                     <span className="break-words font-medium">{service.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      R{service.price} · {formatDuration(service.duration)}
+                      {formatPrice(service.price)} · {formatDuration(service.duration)}
                     </span>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
@@ -135,7 +136,7 @@ export function ServicesManagement() {
                   {data.map((service) => (
                     <TableRow key={service.id}>
                       <TableCell className="font-medium">{service.name}</TableCell>
-                      <TableCell>R{service.price}</TableCell>
+                      <TableCell>{formatPrice(service.price)}</TableCell>
                       <TableCell>{formatDuration(service.duration)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">

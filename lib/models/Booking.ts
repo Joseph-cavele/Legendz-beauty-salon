@@ -9,6 +9,9 @@ const bookingSchema = new Schema(
     bookingTime: { type: String, required: true },
     description: { type: String },
     notes: { type: String },
+    /** How the booking came in: the public booking page, or recorded by the
+        owner on the dashboard for a client who walked in. */
+    source: { type: String, enum: ["ONLINE", "WALK_IN"], default: "ONLINE" },
     status: {
       type: String,
       enum: [
@@ -49,6 +52,13 @@ const bookingSchema = new Schema(
         every booking after the first with a null reference. */
     paymentReference: { type: String, index: true, sparse: true, unique: true },
     paidAt: { type: Date },
+
+    /* Scheduled emails (features/notifications/server/scheduled-emails.ts).
+       Each is set when that email is sent, so it goes out once only. */
+    /** "Your appointment is in 2 hours" reminder. */
+    reminderSentAt: { type: Date },
+    /** "We miss you" follow-up, two weeks after this (completed) visit. */
+    followUpSentAt: { type: Date },
   },
   { timestamps: true }
 )

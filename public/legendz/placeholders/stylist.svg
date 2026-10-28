@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" role="img" aria-label="Placeholder – Stylist portrait">
+  <!-- Placeholder only. Colours mirror the brand palette in app/globals.css. -->
+  <rect width="600" height="600" fill="#171717"/>
+  <rect x="33.333333333333336" y="33.333333333333336" width="533.3333333333334" height="533.3333333333334" fill="none" stroke="#C5A04F" stroke-width="4" stroke-dasharray="14 10" opacity="0.7"/>
+  <text x="50%" y="44%" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" letter-spacing="3" fill="#B8B8B8">PLACEHOLDER</text>
+  <text x="50%" y="56%" text-anchor="middle" font-family="Georgia, serif" font-size="55" fill="#C5A04F">Stylist portrait</text>
+</svg>

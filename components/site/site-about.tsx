@@ -3,37 +3,29 @@
 import { useRef, useState } from "react"
 import NextImage from "next/image"
 import Link from "next/link"
-import { CalendarCheck, Play, Scissors, Sparkles, UserRound } from "lucide-react"
+import { CalendarCheck, Clock, Play, Scissors, Sparkles } from "lucide-react"
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react"
 
 import { fadeUp } from "@/lib/motion"
+import { salonImages } from "@/lib/salon-assets"
+import { SALON_HOURS, SALON_NAME } from "@/lib/salon-contact"
+import { legendzServices, serviceCategories } from "@/lib/salon-services"
 
 /* ══════════════════════════════════════════════════════════════════════
-   VIDEO SLOT — drop an mp4/webm in /public/Assets and set the path here.
+   VIDEO SLOT — drop an mp4/webm in /public/legendz and set the path here.
    While it's "", the play button renders but is disabled rather than
    clickable: a play control that does nothing when pressed is a broken
    promise to the visitor, not a placeholder.
    ══════════════════════════════════════════════════════════════════════ */
 const VIDEO_SRC = ""
 
-/* ══════════════════════════════════════════════════════════════════════
-   PLACEHOLDER FACTS — every number below is unverified. `SINCE` and the
-   three stats are carried over from claims already on the site ("5+ years",
-   "500+ clients"); the service count is the only one derived from real data
-   (19 entries in lib/salon-services.ts). Confirm or correct these before
-   this page goes public — they are public claims about the business.
-
-   Deliberately NOT copied from the reference: "15+ Awards Won" and
-   "20+ Expert Stylists". Publishing awards the salon may not hold, or a
-   headcount it does not have, is not a placeholder — it's a false claim.
-   ══════════════════════════════════════════════════════════════════════ */
-const SINCE = "2019"
-const YEARS = "10+"
-
+/* Every figure here is derived from real data — the service list and the
+   opening hours. Do not add years in business, client counts or awards until
+   the salon confirms them: they are public claims about the business. */
 const stats = [
-  { icon: UserRound, value: YEARS, label: "Years Experience" },
-  { icon: Scissors, value: "19", label: "Services Offered" },
-  { icon: CalendarCheck, value: "500+", label: "Happy Clients" },
+  { icon: Scissors, value: String(legendzServices.length), label: "Services Offered" },
+  { icon: Sparkles, value: String(serviceCategories.length), label: "Specialities" },
+  { icon: CalendarCheck, value: "7 days", label: "Open every week" },
 ]
 
 export function SiteAbout() {
@@ -72,12 +64,12 @@ export function SiteAbout() {
     <section
       ref={sectionRef}
       id="about"
-      className="scroll-mt-24 bg-rose-surface py-20 sm:py-28"
+      className="scroll-mt-24 bg-brand-surface py-20 sm:py-28"
     >
       <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 md:px-10 lg:grid-cols-2 lg:gap-16 xl:px-16">
         {/* ── Left: image collage ────────────────────────────────────── */}
         <motion.div {...reveal(0, 28)} className="relative">
-          <div className="group relative aspect-4/3 w-full overflow-hidden rounded-[22px] bg-rose-glass shadow-[0_24px_60px_-28px_rgba(39,33,42,0.45)]">
+          <div className="group relative aspect-4/3 w-full overflow-hidden rounded-[22px] bg-brand-glass shadow-[0_24px_60px_-28px_rgba(0,0,0,0.45)]">
             {playing && VIDEO_SRC ? (
               <video
                 src={VIDEO_SRC}
@@ -88,10 +80,6 @@ export function SiteAbout() {
               />
             ) : (
               <>
-                {/* Real interior photography, not the AI-generated salon used
-                    in the hero — this section makes claims about the business,
-                    so the room should be the actual room. The slow drift is
-                    what sells it as footage rather than a still. */}
                 {/* Overscanned 10% top and bottom so a ±6% parallax drift
                     never pulls an edge inside the frame and exposes the
                     backing. The frame itself clips the overflow. */}
@@ -102,8 +90,8 @@ export function SiteAbout() {
                   transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
                 >
                   <NextImage
-                    src="/Assets/salon-room-wide.webp"
-                    alt="The salon's treatment room, with pedicure stations and marble floors"
+                    src={salonImages.salonInterior.src}
+                    alt={salonImages.salonInterior.alt}
                     fill
                     sizes="(min-width: 1024px) 45vw, 90vw"
                     className="object-cover"
@@ -114,7 +102,7 @@ export function SiteAbout() {
                     high-key interior. */}
                 <div
                   aria-hidden
-                  className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(39,33,42,0.5)_0%,rgba(39,33,42,0.25)_60%,rgba(39,33,42,0.45)_100%)]"
+                  className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.5)_0%,rgba(0,0,0,0.25)_60%,rgba(0,0,0,0.45)_100%)]"
                 />
 
                 <button
@@ -124,15 +112,15 @@ export function SiteAbout() {
                   aria-label={
                     VIDEO_SRC ? "Play the salon tour" : "Salon tour video coming soon"
                   }
-                  className="absolute inset-0 grid place-items-center focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-accent disabled:cursor-default"
+                  className="absolute inset-0 grid place-items-center focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent disabled:cursor-default"
                 >
-                  <span className="relative grid size-16 place-items-center rounded-full bg-rose-accent text-white shadow-[0_12px_36px_-8px_rgba(236,72,153,0.9)] transition-transform duration-300 group-hover:scale-110 sm:size-20">
+                  <span className="relative grid size-16 place-items-center rounded-full bg-brand-accent text-brand-on-accent shadow-[0_12px_36px_-8px_color-mix(in_srgb,var(--lz-gold)_90%,transparent)] transition-transform duration-300 group-hover:scale-110 sm:size-20">
                     {/* Two rings on a staggered loop, so one is always mid-flight. */}
                     {[0, 1.4].map((delay) => (
                       <motion.span
                         key={delay}
                         aria-hidden
-                        className="absolute inset-0 rounded-full border-2 border-rose-accent"
+                        className="absolute inset-0 rounded-full border-2 border-brand-accent"
                         initial={{ scale: 1, opacity: 0.7 }}
                         animate={reduce ? undefined : { scale: [1, 1.9], opacity: [0.7, 0] }}
                         transition={{
@@ -147,7 +135,7 @@ export function SiteAbout() {
                   </span>
                 </button>
 
-                <span className="absolute bottom-4 left-4 rounded-full bg-rose-glass/70 px-3 py-1.5 font-ui text-[11px] font-semibold text-white backdrop-blur-sm">
+                <span className="absolute bottom-4 left-4 rounded-full bg-brand-glass/70 px-3 py-1.5 font-ui text-[11px] font-semibold text-white backdrop-blur-sm">
                   Take a look inside
                 </span>
               </>
@@ -160,33 +148,33 @@ export function SiteAbout() {
               unclipped, so it can travel further than the 6% inside the frame. */}
           <motion.div
             style={reduce ? undefined : { y: insetY }}
-            className="absolute -bottom-12 -left-6 hidden aspect-square w-40 overflow-hidden rounded-[18px] border-4 border-rose-surface shadow-[0_18px_44px_-20px_rgba(39,33,42,0.5)] sm:block lg:w-48"
+            className="absolute -bottom-12 -left-6 hidden aspect-square w-40 overflow-hidden rounded-[18px] border-4 border-brand-surface shadow-[0_18px_44px_-20px_rgba(0,0,0,0.5)] sm:block lg:w-48"
           >
             <NextImage
-              src="/Assets/salon-station.webp"
-              alt="A styling station with a backlit round mirror"
+              src={salonImages.salonStation.src}
+              alt={salonImages.salonStation.alt}
               fill
               sizes="12rem"
               className="object-cover"
             />
           </motion.div>
 
-          {/* Experience badge. Gentlest drift of the three — it carries a
+          {/* Hours badge. Gentlest drift of the three — it carries a
               number the visitor is meant to read, so it stays closest to the
               page's own scroll speed. */}
           <motion.div
             style={reduce ? undefined : { y: badgeY }}
-            className="absolute -bottom-8 right-4 flex items-center gap-3 rounded-[16px] bg-rose-surface px-5 py-3.5 shadow-[0_18px_44px_-16px_rgba(39,33,42,0.35)] sm:right-8"
+            className="absolute -bottom-8 right-4 flex items-center gap-3 rounded-[16px] bg-brand-surface px-5 py-3.5 shadow-[0_18px_44px_-16px_rgba(0,0,0,0.35)] sm:right-8"
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-rose-accent text-white">
-              <UserRound className="size-5" aria-hidden />
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-accent text-brand-on-accent">
+              <Clock className="size-5" aria-hidden />
             </span>
             <span className="leading-tight">
-              <span className="block font-display text-xl font-semibold text-rose-ink">
-                {YEARS}
+              <span className="block font-display text-xl font-semibold text-brand-text">
+                {SALON_HOURS.open}–{SALON_HOURS.close}
               </span>
-              <span className="block font-ui text-[11px] text-rose-muted">
-                Years Experience
+              <span className="block font-ui text-[11px] text-brand-muted">
+                Open {SALON_HOURS.days}
               </span>
             </span>
           </motion.div>
@@ -196,7 +184,7 @@ export function SiteAbout() {
         <div className="mt-16 lg:mt-0">
           <motion.p
             {...reveal(0, 14)}
-            className="flex items-center gap-2 font-ui text-[10px] font-semibold tracking-[0.22em] text-rose-accent uppercase sm:text-[11px]"
+            className="flex items-center gap-2 font-ui text-[10px] font-semibold tracking-[0.22em] text-brand-accent uppercase sm:text-[11px]"
           >
             <Sparkles className="size-3" aria-hidden />
             About us
@@ -204,41 +192,39 @@ export function SiteAbout() {
 
           <motion.h2
             {...reveal(0.08)}
-            className="mt-4 font-display text-[clamp(1.9rem,4.2vw,2.9rem)] leading-[1.15] font-medium tracking-[-0.01em] text-rose-ink"
+            className="mt-4 font-display text-[clamp(1.9rem,4.2vw,2.9rem)] leading-[1.15] font-medium tracking-[-0.01em] text-brand-text"
           >
-            Crafting Beauty Since {SINCE}
+            Welcome to {SALON_NAME}
           </motion.h2>
 
           <motion.p
             {...reveal(0.16)}
-            className="mt-6 font-ui text-sm leading-[1.8] text-rose-muted sm:text-base"
+            className="mt-6 font-ui text-sm leading-[1.8] text-brand-muted sm:text-base"
           >
-            At Patrick Dreadlocks &amp; Beauty, we believe every woman deserves
-            to feel beautiful and confident. What began as a single chair in
-            Kempton Park grew into a salon built around one idea — that hair
-            you plan to keep for years deserves to be treated that way.
+            {SALON_NAME} is on Mtwazi Street in Zwelethemba, Worcester, and
+            open every day of the week. Book online, or message us on WhatsApp
+            if you are not sure which service you need.
           </motion.p>
 
           <motion.p
             {...reveal(0.22)}
-            className="mt-4 font-ui text-sm leading-[1.8] text-rose-muted sm:text-base"
+            className="mt-4 font-ui text-sm leading-[1.8] text-brand-muted sm:text-base"
           >
-            Our specialists start, grow and maintain locs, install braids and
-            wigs, and finish cuts and colour — with nails, brows and skin under
-            the same roof. Every appointment is personal, every product is
-            premium, and nobody leaves a chair before they are happy.
+            We start and maintain dreadlocks — with a scalp treatment
+            included — and do braids, nails, hair styling and weave
+            installation, all under one roof.
           </motion.p>
 
           <motion.dl {...reveal(0.28)} className="mt-10 flex flex-wrap gap-x-10 gap-y-6">
             {stats.map((stat) => (
               <div key={stat.label} className="flex flex-col items-start">
-                <span className="grid size-10 place-items-center rounded-full bg-rose-mid text-rose-accent">
+                <span className="grid size-10 place-items-center rounded-full bg-brand-line text-brand-accent">
                   <stat.icon className="size-4" aria-hidden />
                 </span>
-                <dd className="mt-3 font-display text-2xl font-semibold text-rose-ink">
+                <dd className="mt-3 font-display text-2xl font-semibold text-brand-text">
                   {stat.value}
                 </dd>
-                <dt className="mt-0.5 font-ui text-xs text-rose-muted">{stat.label}</dt>
+                <dt className="mt-0.5 font-ui text-xs text-brand-muted">{stat.label}</dt>
               </div>
             ))}
           </motion.dl>
@@ -249,7 +235,7 @@ export function SiteAbout() {
           <motion.div {...reveal(0.34)} className="mt-10">
             <Link
               href="/book"
-              className="inline-flex items-center gap-2 rounded-full bg-rose-accent px-8 py-3.5 font-ui text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-12px_rgba(236,72,153,0.9)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-accent active:translate-y-0"
+              className="inline-flex items-center gap-2 rounded-full bg-brand-accent px-8 py-3.5 font-ui text-sm font-semibold text-brand-on-accent transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-12px_color-mix(in_srgb,var(--lz-gold)_90%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent active:translate-y-0"
             >
               Book Your Visit
               <Sparkles className="size-4" aria-hidden />

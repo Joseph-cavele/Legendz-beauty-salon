@@ -7,37 +7,43 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 
 import { EASE_OUT } from "@/lib/motion"
+import { salonImages } from "@/lib/salon-assets"
 
-/* The reference's hero carousel: a rounded pink panel with the model bleeding
+/* The reference's hero carousel: a rounded dark panel with the model bleeding
    off the left edge, the headline and copy centred beside her, arrows on the
    outer edges and dots beneath.
 
-   Slides use the salon's own photographs and speak to its own services. Two
-   things from the reference are deliberately absent: its skincare claims
-   ("radiant, healthy skin"), which this salon does not offer, and its floral
-   line-art background, which is someone else's artwork. The soft radial wash
-   stands in for the latter. */
+   Slides speak to the salon's own services, and use its category photo
+   slots (lib/salon-assets.ts). The reference's floral line-art background is
+   someone else's artwork; the soft radial wash stands in for it. */
 const slides = [
   {
-    headline: "The secret to beautiful locs is in our hands",
-    body: "From the first install to years of retwists, your locs are sectioned, tended and grown by people who do this every day.",
+    headline: "Dreadlocks, started and maintained",
+    body: "Start on natural hair or with extensions, twist and style, crochet or permanent fibre — every dreadlocks service includes a scalp treatment.",
     cta: { label: "See our services", href: "#services-list" },
-    image: "/Assets/1e60d50b163af6c4acf12122730c6865.jpg",
-    alt: "Stylist installing locs for a client in the chair",
+    image: salonImages.category.Dreadlocks.src,
+    alt: salonImages.category.Dreadlocks.alt,
   },
   {
-    headline: "Braids that sit light and last",
-    body: "Knotless braids parted and installed with even tension, so nothing pulls at your edges and the set holds for weeks.",
-    cta: { label: "Book a set", href: "/book" },
-    image: "/Assets/e58c67cde794d63ac80d12159571bfcd.jpg",
-    alt: "Feed-in braids gathered into a long braided bun",
+    headline: "Braids and weaves",
+    body: "Back lines, straight up, knotless and box braids, plus weave installation.",
+    cta: { label: "Book now", href: "/book" },
+    image: salonImages.weaveBanner.src,
+    alt: salonImages.weaveBanner.alt,
   },
   {
-    headline: "A cut shaped to you",
-    body: "Cuts, wig installs and colour finished in the chair — you leave styled, not holding a mirror wondering.",
+    headline: "Nails and hair",
+    body: "Gel, acrylic, nail art and pedicures, and hair styling from blow outs to curls.",
     cta: { label: "See prices", href: "#services-list" },
-    image: "/Assets/76b98164c809735eb05baded97d88d9a.jpg",
-    alt: "Finished natural short cut",
+    image: salonImages.category.Nails.src,
+    alt: salonImages.category.Nails.alt,
+  },
+  {
+    headline: "Book your visit",
+    body: "Pick a service, a time and pay in person — open Monday to Sunday, 08:30 to 18:00.",
+    cta: { label: "Book now", href: "/book" },
+    image: salonImages.bookingBanner.src,
+    alt: salonImages.bookingBanner.alt,
   },
 ]
 
@@ -73,7 +79,7 @@ export function SiteServicesHero() {
         onMouseLeave={() => setPaused(false)}
         onFocusCapture={() => setPaused(true)}
         onBlurCapture={() => setPaused(false)}
-        className="relative mx-auto grid max-w-7xl overflow-hidden rounded-[28px] bg-[radial-gradient(ellipse_120%_100%_at_15%_50%,#fbe4ee_0%,#fdf2f5_55%,#fdf7f9_100%)] shadow-[0_24px_70px_-34px_rgba(39,33,42,0.4)]"
+        className="relative mx-auto grid max-w-7xl overflow-hidden rounded-[28px] bg-[radial-gradient(ellipse_120%_100%_at_15%_50%,color-mix(in_srgb,var(--lz-gold)_12%,var(--lz-surface))_0%,var(--lz-surface)_55%,var(--lz-bg)_100%)] shadow-[0_24px_70px_-34px_rgba(0,0,0,0.4)]"
       >
         {/* One grid cell holds both columns so the panel keeps its height when
             a slide's copy is shorter than the photograph. */}
@@ -98,7 +104,7 @@ export function SiteServicesHero() {
                 />
                 {/* Feathers the photo into the panel instead of ending it on a
                     hard edge, which is what the reference does with its model. */}
-                <div className="absolute inset-0 bg-linear-to-t from-[#fdf2f5] via-transparent to-transparent sm:bg-linear-to-r sm:from-transparent sm:via-transparent sm:to-[#fdf2f5]" />
+                <div className="absolute inset-0 bg-linear-to-t from-brand-bg via-transparent to-transparent sm:bg-linear-to-r sm:from-transparent sm:via-transparent sm:to-brand-bg" />
               </motion.div>
             </AnimatePresence>
           </div>
@@ -112,17 +118,17 @@ export function SiteServicesHero() {
                 exit={reduce ? { opacity: 1 } : { opacity: 0, y: -12 }}
                 transition={reduce ? { duration: 0 } : { duration: 0.5, ease: EASE_OUT }}
               >
-                <h1 className="font-display text-[clamp(1.5rem,3.4vw,2.4rem)] leading-[1.25] font-medium tracking-[-0.01em] text-rose-ink">
+                <h1 className="font-display text-[clamp(1.5rem,3.4vw,2.4rem)] leading-[1.25] font-medium tracking-[-0.01em] text-brand-text">
                   {slide.headline}
                 </h1>
 
-                <p className="mx-auto mt-4 max-w-md font-ui text-xs leading-[1.8] text-rose-muted sm:text-sm">
+                <p className="mx-auto mt-4 max-w-md font-ui text-xs leading-[1.8] text-brand-muted sm:text-sm">
                   {slide.body}
                 </p>
 
                 <Link
                   href={slide.cta.href}
-                  className="mt-7 inline-flex items-center rounded-full bg-rose-accent px-7 py-3 font-ui text-xs font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgba(236,72,153,0.9)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-accent active:translate-y-0 sm:text-sm"
+                  className="mt-7 inline-flex items-center rounded-full bg-brand-accent px-7 py-3 font-ui text-xs font-semibold text-brand-on-accent transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_color-mix(in_srgb,var(--lz-gold)_90%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent active:translate-y-0 sm:text-sm"
                 >
                   {slide.cta.label}
                 </Link>
@@ -135,7 +141,7 @@ export function SiteServicesHero() {
           type="button"
           onClick={() => go(index - 1)}
           aria-label="Previous slide"
-          className="absolute top-1/2 left-2 z-10 grid size-9 -translate-y-1/2 place-items-center rounded-full text-rose-ink/50 transition-colors hover:bg-rose-surface hover:text-rose-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-accent sm:left-3"
+          className="absolute top-1/2 left-2 z-10 grid size-9 -translate-y-1/2 place-items-center rounded-full text-brand-text/50 transition-colors hover:bg-brand-surface hover:text-brand-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent sm:left-3"
         >
           <ChevronLeft className="size-5" />
         </button>
@@ -144,7 +150,7 @@ export function SiteServicesHero() {
           type="button"
           onClick={() => go(index + 1)}
           aria-label="Next slide"
-          className="absolute top-1/2 right-2 z-10 grid size-9 -translate-y-1/2 place-items-center rounded-full text-rose-ink/50 transition-colors hover:bg-rose-surface hover:text-rose-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-accent sm:right-3"
+          className="absolute top-1/2 right-2 z-10 grid size-9 -translate-y-1/2 place-items-center rounded-full text-brand-text/50 transition-colors hover:bg-brand-surface hover:text-brand-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent sm:right-3"
         >
           <ChevronRight className="size-5" />
         </button>
@@ -157,8 +163,8 @@ export function SiteServicesHero() {
               onClick={() => go(i)}
               aria-label={`Go to slide ${i + 1}`}
               aria-current={i === index}
-              className={`h-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-accent ${
-                i === index ? "w-5 bg-rose-accent" : "w-2 bg-rose-accent/30 hover:bg-rose-accent/60"
+              className={`h-2 rounded-full transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent ${
+                i === index ? "w-5 bg-brand-accent" : "w-2 bg-brand-accent/30 hover:bg-brand-accent/60"
               }`}
             />
           ))}

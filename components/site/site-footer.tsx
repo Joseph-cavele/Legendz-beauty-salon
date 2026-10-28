@@ -1,7 +1,9 @@
+import Link from "next/link"
 import type { IconType } from "react-icons"
-import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa6"
+import { FaFacebookF } from "react-icons/fa6"
+import { LogIn } from "lucide-react"
 
-import { SALON_EMAIL, SALON_SOCIALS } from "@/lib/salon-contact"
+import { SALON_EMAIL, SALON_NAME, SALON_SOCIALS } from "@/lib/salon-contact"
 
 const footerLinks = [
   { label: "Privacy Policy", href: "#" },
@@ -11,13 +13,10 @@ const footerLinks = [
 ]
 
 /* Brand marks come from react-icons: lucide v1 dropped its brand set, so
-   Facebook and Instagram resolve to undefined there and TikTok never
-   existed. Keyed by the label in SALON_SOCIALS — a platform added there
+   Facebook resolves to undefined there. Keyed by the label in SALON_SOCIALS — a platform added there
    without an icon here is skipped rather than rendering an empty box. */
 const socialIcons: Record<string, IconType> = {
   Facebook: FaFacebookF,
-  Instagram: FaInstagram,
-  TikTok: FaTiktok,
 }
 
 /* Every platform we have a mark for. Whether it links anywhere is decided
@@ -27,21 +26,21 @@ const socials = SALON_SOCIALS.filter((s) => socialIcons[s.label])
 const socialClass =
   "grid size-9 place-items-center rounded-full border transition-colors duration-300"
 
-/* Deep charcoal-plum, matching the hero's glass card, so the pale pink body has
-   something to close against. Single skin — the header dropped its two-tone
+/* Surface grey against the black page, so the page has something to close
+   against. Single skin — the header dropped its two-tone
    mechanism, and a footer that disagreed with it was the reason that existed. */
 /* `#contact` moved to SiteContact once a real contact section existed — two
    elements cannot share the id, and the nav means the form. */
 export function SiteFooter() {
   return (
-    <footer className="mt-auto bg-rose-glass">
+    <footer className="mt-auto bg-brand-glass">
       <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between px-5 py-16 md:flex-row md:px-16">
         <div className="mb-8 flex flex-col items-center leading-none md:mb-0 md:items-start">
-          <span className="font-display text-[24px] font-medium tracking-[0.18em] text-rose-ground">
-            PATRICK
+          <span className="font-display text-[24px] font-medium tracking-[0.18em] text-brand-text">
+            LEGENDZ
           </span>
-          <span className="mt-1.5 font-ui text-[10px] font-semibold tracking-[0.3em] text-rose-accent uppercase">
-            Dreadlocks &amp; Beauty
+          <span className="mt-1.5 font-ui text-[10px] font-semibold tracking-[0.3em] text-brand-accent uppercase">
+            Beauty Salon
           </span>
 
           {socials.length > 0 && (
@@ -61,7 +60,7 @@ export function SiteFooter() {
                         role="img"
                         aria-label={`${label} — coming soon`}
                         title={`${label} — coming soon`}
-                        className={`${socialClass} cursor-default border-rose-ground/10 text-rose-ground/30`}
+                        className={`${socialClass} cursor-default border-brand-text/10 text-brand-text/30`}
                       >
                         <Icon className="size-4" aria-hidden />
                       </span>
@@ -75,8 +74,8 @@ export function SiteFooter() {
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`Patrick Dreadlocks & Beauty on ${label}`}
-                      className={`${socialClass} border-rose-ground/20 text-rose-ground/70 hover:border-rose-accent hover:bg-rose-accent hover:text-rose-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-accent`}
+                      aria-label={`${SALON_NAME} on ${label}`}
+                      className={`${socialClass} border-brand-text/20 text-brand-text/70 hover:border-brand-accent hover:bg-brand-accent hover:text-brand-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent`}
                     >
                       <Icon className="size-4" aria-hidden />
                     </a>
@@ -92,16 +91,24 @@ export function SiteFooter() {
             <a
               key={l.label}
               href={l.href}
-              className="font-ui text-base leading-[1.6] text-rose-ground/65 transition-colors hover:text-rose-accent"
+              className="font-ui text-base leading-[1.6] text-brand-text/65 transition-colors hover:text-brand-accent"
             >
               {l.label}
             </a>
           ))}
         </div>
 
-        <div className="text-center md:text-right">
-          <p className="font-ui text-base leading-[1.6] text-rose-ground/65">
-            &copy; {new Date().getFullYear()} Patrick Dreadlocks &amp; Beauty Salon. All rights reserved.
+        <div className="flex flex-col items-center gap-4 text-center md:items-end md:text-right">
+          {/* Into the dashboard — sign-in by emailed code, for allowed emails only. */}
+          <Link
+            href="/login"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-brand-accent/60 px-5 py-2 font-ui text-sm font-semibold text-brand-accent transition-colors duration-300 hover:bg-brand-accent hover:text-brand-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent"
+          >
+            <LogIn className="size-4" aria-hidden />
+            Login
+          </Link>
+          <p className="font-ui text-base leading-[1.6] text-brand-text/65">
+            &copy; {new Date().getFullYear()} {SALON_NAME}. All rights reserved.
           </p>
         </div>
       </div>

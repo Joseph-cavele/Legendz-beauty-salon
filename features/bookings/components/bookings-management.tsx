@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils"
 import { useBookings } from "@/features/bookings/hooks/use-bookings"
 import { BookingManagementRowActions } from "@/features/bookings/components/booking-management-row-actions"
+import { AddWalkInButton } from "@/features/bookings/components/walk-in-dialog"
 import type { BookingStatus } from "@/types"
 
 const TABS: { label: string; status?: BookingStatus }[] = [
@@ -35,6 +36,15 @@ const statusVariant: Record<BookingStatus, "default" | "secondary" | "destructiv
   NO_SHOW: "outline",
 }
 
+/** Marks a booking recorded on the dashboard for a walk-in client. */
+function WalkInTag() {
+  return (
+    <span className="ml-2 inline-flex rounded-full bg-brand-accent/15 px-2 py-0.5 align-middle text-[10px] font-semibold tracking-wide text-brand-text uppercase">
+      Walk-in
+    </span>
+  )
+}
+
 export function BookingsManagement() {
   const [tab, setTab] = useState<string>("All")
   const activeStatus = TABS.find((t) => t.label === tab)?.status
@@ -42,8 +52,9 @@ export function BookingsManagement() {
 
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
         <CardTitle>Bookings Management</CardTitle>
+        <AddWalkInButton />
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-1 border-b pb-3">
@@ -88,6 +99,7 @@ export function BookingsManagement() {
                   <div className="flex items-start justify-between gap-2">
                     <span className="min-w-0 break-words font-medium">
                       {booking.customerName}
+                      {booking.walkIn && <WalkInTag />}
                     </span>
                     <div className="flex shrink-0 items-center gap-1">
                       <Badge variant={statusVariant[booking.status]}>
@@ -125,7 +137,10 @@ export function BookingsManagement() {
                 <TableBody>
                   {data.map((booking) => (
                     <TableRow key={booking.id}>
-                      <TableCell className="font-medium">{booking.customerName}</TableCell>
+                      <TableCell className="font-medium">
+                        {booking.customerName}
+                        {booking.walkIn && <WalkInTag />}
+                      </TableCell>
                       <TableCell>{booking.serviceNames.join(", ")}</TableCell>
                       <TableCell>{booking.stylistName}</TableCell>
                       <TableCell className="whitespace-nowrap">

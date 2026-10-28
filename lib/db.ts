@@ -23,16 +23,19 @@ export async function connectDB() {
   if (cache.conn) return cache.conn
 
   if (!MONGODB_URI) {
-    throw new Error("MONGODB_URI environment variable is not set")
+    const message = "MONGODB_URI environment variable is not set"
+    console.error(`❌ MongoDB connection failed: ${message}`)
+    throw new Error(message)
   }
 
   if (!/^mongodb(\+srv)?:\/\//.test(MONGODB_URI)) {
     // Show the leading characters (not the credentials) so the actual mistake —
     // a stray quote, the "MONGODB_URI=" prefix, etc. — is visible in the logs.
-    throw new Error(
+    const message =
       `MONGODB_URI has an invalid scheme (value starts with "${MONGODB_URI.slice(0, 14)}…"). ` +
-        `It must start with "mongodb://" or "mongodb+srv://" — check your host's env var for quotes or a wrong value.`
-    )
+      `It must start with "mongodb://" or "mongodb+srv://" — check your host's env var for quotes or a wrong value.`
+    console.error(`❌ MongoDB connection failed: ${message}`)
+    throw new Error(message)
   }
 
   if (!cache.promise) {

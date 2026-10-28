@@ -1,3 +1,4 @@
+import { brandedEmail, emailRow } from "@/emails/layout"
 import { escapeHtml } from "@/emails/escape-html"
 import { formatCurrency } from "@/lib/currency"
 
@@ -18,6 +19,8 @@ interface NewBookingOwnerEmailProps {
    * chair.
    */
   paidAmount?: number
+  /** Total as shown to the customer, e.g. "R 270" or "Price on request". */
+  totalDisplay?: string
 }
 
 export function newBookingOwnerEmailHtml({
@@ -28,15 +31,14 @@ export function newBookingOwnerEmailHtml({
   bookingDate,
   bookingTime,
   paidAmount,
+  totalDisplay,
 }: NewBookingOwnerEmailProps) {
   const isPaid = typeof paidAmount === "number"
 
-  const row = (label: string, value: string) =>
-    `<tr><td style="padding: 4px 0; color: #666;">${label}</td><td>${value}</td></tr>`
+  const row = emailRow
 
-  return `
-    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-      <h2>${isPaid ? "New Booking — Paid Online" : "New Booking — Confirmed"}</h2>
+  return brandedEmail(`
+      <h2 style="margin-top: 0;">${isPaid ? "New Booking — Paid Online" : "New Booking — Confirmed"}</h2>
       <p>${
         isPaid
           ? "A new appointment has been paid for online and is already confirmed."
@@ -49,12 +51,12 @@ export function newBookingOwnerEmailHtml({
         ${row("Date", escapeHtml(bookingDate))}
         ${row("Time", escapeHtml(bookingTime))}
         ${isPaid ? row("Paid", escapeHtml(formatCurrency(paidAmount))) : ""}
+        ${!isPaid && totalDisplay ? row("Price", escapeHtml(totalDisplay)) : ""}
       </table>
       <p>${
         isPaid
           ? "The slot is confirmed and the money has cleared. Log in to the dashboard to view it."
           : "The slot is confirmed and payment is due in person. Log in to the dashboard to view or cancel it."
       }</p>
-    </div>
-  `
+  `)
 }

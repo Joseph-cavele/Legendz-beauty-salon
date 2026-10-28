@@ -7,14 +7,21 @@ import { ServiceModel } from "@/lib/models/Service"
 import { BookingModel } from "@/lib/models/Booking"
 import { BookingImageModel } from "@/lib/models/BookingImage"
 import { NotificationModel } from "@/lib/models/Notification"
-import { createBookingSchema } from "@/features/bookings/schema"
+import { createBookingSchema, ONLINE_PAYMENTS_ENABLED } from "@/features/bookings/schema"
+import { isSlotTaken, runsPastClosing, TIME_SLOTS, toMinutes } from "@/features/bookings/availability"
+import { getBusyIntervals } from "@/features/bookings/server/get-busy-intervals"
 import { getBookings } from "@/features/bookings/server/get-bookings"
-import { resend } from "@/lib/resend"
+import { emailFrom, EMAIL_REPLY_TO, resend } from "@/lib/resend"
+import { formatTotal } from "@/lib/currency"
 import { newBookingOwnerEmailHtml } from "@/emails/new-booking-owner"
 import { appointmentConfirmedEmailHtml } from "@/emails/appointment-confirmed"
 import type { BookingStatus } from "@/types"
+import { requireOwner } from "@/lib/auth-guard"
 
 export async function GET(req: NextRequest) {
+  const denied = await requireOwner()
+  if (denied) return denied
+
   const status = req.nextUrl.searchParams.get("status") as BookingStatus | null
   const bookings = await getBookings(status ?? undefined)
   return NextResponse.json(bookings)
@@ -57,6 +64,44 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "One or more services not found" }, { status: 404 })
   }
 
+  /* Online payment is switched off (see ONLINE_PAYMENTS_ENABLED).
+     Refused here too, not just hidden in the wizard, so a hand-made request
+     can't start a Paystack charge. */
+  if (paymentMethod === "ONLINE" && !ONLINE_PAYMENTS_ENABLED) {
+    return NextResponse.json(
+      { error: "Online payment is not available. Please choose pay in person." },
+      { status: 400 }
+    )
+  }
+
+  /* Double-booking guard. The new booking runs for the sum of its services'
+     durations and must not overlap anything the stylist already holds that
+     day. The wizard greys these times out too, but this is the check that
+     counts. Two requests landing in the same instant could still both pass —
+     acceptable at one salon's volume, and the dashboard shows both if so. */
+  if (!TIME_SLOTS.includes(bookingTime)) {
+    return NextResponse.json(
+      { error: "Please choose a time within opening hours." },
+      { status: 400 }
+    )
+  }
+  const duration = services.reduce((sum, s) => sum + (s.duration ?? 0), 0)
+  if (runsPastClosing(toMinutes(bookingTime), duration)) {
+    return NextResponse.json(
+      { error: "Those services would run past closing time. Please choose an earlier time." },
+      { status: 400 }
+    )
+  }
+  const busy = await getBusyIntervals(stylistId, bookingDate)
+  if (isSlotTaken(toMinutes(bookingTime), duration, busy)) {
+    return NextResponse.json(
+      {
+        error: `${stylist.name} is already booked at that time on ${bookingDate}. Please choose another time.`,
+      },
+      { status: 409 }
+    )
+  }
+
   const customer = await CustomerModel.findOneAndUpdate(
     { email: customerEmail },
     { name: customerName, email: customerEmail, phone: customerPhone },
@@ -71,6 +116,7 @@ export async function POST(req: NextRequest) {
   const amount = services.reduce((sum, s) => sum + (s.price ?? 0), 0)
 
   const payingOnline = paymentMethod === "ONLINE"
+  const totalDisplay = formatTotal(services.map((s) => s.price))
 
   const booking = await BookingModel.create({
     customer: customer._id,
@@ -120,15 +166,17 @@ export async function POST(req: NextRequest) {
   if (!payingOnline && resend && customerEmail) {
     try {
       const { error } = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
+        from: emailFrom(),
         to: customerEmail,
-        subject: "Your appointment is booked & confirmed",
+        replyTo: EMAIL_REPLY_TO,
+        subject: "Legendz Beauty Salon — your appointment is confirmed",
         html: appointmentConfirmedEmailHtml({
           customerName,
           stylistName: stylist.name,
           serviceNames: services.map((s) => s.name),
           bookingDate,
           bookingTime,
+          totalDisplay,
         }),
       })
       // Resend reports rejections on the result rather than throwing.
@@ -141,9 +189,9 @@ export async function POST(req: NextRequest) {
   if (!payingOnline && resend && process.env.OWNER_EMAIL) {
     try {
       await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
+        from: emailFrom(),
         to: process.env.OWNER_EMAIL,
-        subject: "New Booking — Confirmed",
+        subject: "New booking — Legendz Beauty Salon",
         html: newBookingOwnerEmailHtml({
           customerName,
           customerEmail,
@@ -151,6 +199,7 @@ export async function POST(req: NextRequest) {
           serviceNames: services.map((s) => s.name),
           bookingDate,
           bookingTime,
+          totalDisplay,
         }),
       })
     } catch (err) {
@@ -159,7 +208,7 @@ export async function POST(req: NextRequest) {
   }
 
   // A new booking changes the dashboard's counts, revenue and charts.
-  revalidateTag("dashboard", "max")
+  revalidateTag("dashboard", { expire: 0 })
 
   return NextResponse.json(
     { id: String(booking._id), amount, paymentMethod },

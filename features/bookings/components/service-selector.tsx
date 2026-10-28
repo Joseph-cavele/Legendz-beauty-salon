@@ -6,6 +6,7 @@ import { useServices } from "@/features/bookings/hooks/use-services"
 import type { CreateBookingFormValues } from "@/features/bookings/schema"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FieldError, FieldLabel } from "@/components/ui/field"
+import { formatPrice } from "@/lib/currency"
 
 function formatDuration(minutes: number) {
   if (minutes < 60) return `${minutes} min`
@@ -72,7 +73,7 @@ export function ServiceSelector({
                   </div>
                 </div>
                 <div className="flex shrink-0 flex-col items-end text-sm">
-                  <span className="font-medium">R{service.price}</span>
+                  <span className="font-medium">{formatPrice(service.price)}</span>
                   <span className="text-muted-foreground">
                     {formatDuration(service.duration)}
                   </span>

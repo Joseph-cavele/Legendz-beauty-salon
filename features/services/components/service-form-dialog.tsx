@@ -67,7 +67,7 @@ export function ServiceFormDialog({
     defaultValues: {
       name: service?.name ?? "",
       description: service?.description ?? "",
-      price: service?.price ?? 0,
+      price: service?.price,
       duration: service?.duration ?? 30,
       category: toCategory(service?.category),
       image: service?.image ?? "",
@@ -79,7 +79,7 @@ export function ServiceFormDialog({
       reset({
         name: service?.name ?? "",
         description: service?.description ?? "",
-        price: service?.price ?? 0,
+        price: service?.price,
         duration: service?.duration ?? 30,
         category: toCategory(service?.category),
         image: service?.image ?? "",
@@ -167,8 +167,16 @@ export function ServiceFormDialog({
                   id="service-price"
                   type="number"
                   step="1"
-                  {...register("price", { valueAsNumber: true })}
+                  min="1"
+                  placeholder="Price on request"
+                  {...register("price", {
+                    // Blank means "Price on request" — undefined, never 0.
+                    setValueAs: (v) => (v === "" || v == null ? undefined : Number(v)),
+                  })}
                 />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Leave blank to show &ldquo;Price on request&rdquo;.
+                </p>
                 {errors.price && <FieldError>{errors.price.message}</FieldError>}
               </div>
               <div className="flex-1">

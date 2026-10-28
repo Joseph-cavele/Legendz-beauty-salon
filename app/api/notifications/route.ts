@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
 import { NotificationModel } from "@/lib/models/Notification"
+import { requireOwner } from "@/lib/auth-guard"
 
 export async function GET() {
+  const denied = await requireOwner()
+  if (denied) return denied
+
   await connectDB()
 
   const [notifications, unreadCount] = await Promise.all([

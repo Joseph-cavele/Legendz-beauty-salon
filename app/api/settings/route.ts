@@ -6,6 +6,7 @@ import {
   getSettings,
   serializeSettings,
 } from "@/features/settings/server/get-settings"
+import { requireOwner } from "@/lib/auth-guard"
 
 interface SettingsDoc {
   salonName: string
@@ -19,6 +20,9 @@ interface SettingsDoc {
 }
 
 export async function GET() {
+  const denied = await requireOwner()
+  if (denied) return denied
+
   const settings = await getSettings()
 
   if (!settings) {
@@ -29,6 +33,9 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
+  const denied = await requireOwner()
+  if (denied) return denied
+
   const body = await req.json()
   const parsed = settingsSchema.safeParse(body)
 

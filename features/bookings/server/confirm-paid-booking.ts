@@ -5,7 +5,7 @@ import { newBookingOwnerEmailHtml } from "@/emails/new-booking-owner"
 import { connectDB } from "@/lib/db"
 import { BookingModel } from "@/lib/models/Booking"
 import { NotificationModel } from "@/lib/models/Notification"
-import { resend } from "@/lib/resend"
+import { emailFrom, EMAIL_REPLY_TO, resend } from "@/lib/resend"
 import { verifyTransaction } from "@/lib/paystack"
 import "@/lib/models"
 
@@ -92,9 +92,10 @@ export async function confirmPaidBooking(reference: string): Promise<ConfirmOutc
   if (resend && booking.customer?.email) {
     try {
       const { error } = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
+        from: emailFrom(),
         to: booking.customer.email,
-        subject: "Your appointment is confirmed",
+        replyTo: EMAIL_REPLY_TO,
+        subject: "Legendz Beauty Salon — your appointment is confirmed",
         html: appointmentConfirmedEmailHtml({
           customerName: booking.customer.name,
           stylistName: booking.stylist?.name ?? "your stylist",
@@ -128,9 +129,9 @@ export async function confirmPaidBooking(reference: string): Promise<ConfirmOutc
   if (resend && process.env.OWNER_EMAIL) {
     try {
       const { error } = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
+        from: emailFrom(),
         to: process.env.OWNER_EMAIL,
-        subject: "New Booking — Paid Online",
+        subject: "New booking (paid online) — Legendz Beauty Salon",
         html: newBookingOwnerEmailHtml({
           customerName: booking.customer?.name ?? "A customer",
           customerEmail: booking.customer?.email ?? "",
@@ -147,7 +148,7 @@ export async function confirmPaidBooking(reference: string): Promise<ConfirmOutc
     }
   }
 
-  revalidateTag("dashboard", "max")
+  revalidateTag("dashboard", { expire: 0 })
 
   return { outcome: "confirmed", bookingId }
 }

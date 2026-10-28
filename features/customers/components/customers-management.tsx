@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useCustomers } from "@/features/customers/hooks/use-customers"
+import { AddWalkInButton } from "@/features/bookings/components/walk-in-dialog"
 
 export function CustomersManagement() {
   const { data, isLoading, isError } = useCustomers()
@@ -22,7 +23,9 @@ export function CustomersManagement() {
     const q = query.trim().toLowerCase()
     if (!q) return true
     return (
-      customer.name.toLowerCase().includes(q) || customer.email.toLowerCase().includes(q)
+      customer.name.toLowerCase().includes(q) ||
+      customer.email.toLowerCase().includes(q) ||
+      customer.phone.replace(/\s/g, "").includes(q.replace(/\s/g, ""))
     )
   })
 
@@ -30,15 +33,18 @@ export function CustomersManagement() {
     <Card>
       <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle>Customers Management</CardTitle>
-        <div className="relative w-full sm:max-w-48">
-          <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search customers..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="pl-8"
-          />
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <AddWalkInButton />
+          <div className="relative w-full sm:w-48">
+            <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search customers..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-8"
+            />
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -66,7 +72,9 @@ export function CustomersManagement() {
                   <div className="flex min-w-0 flex-col">
                     <span className="break-words font-medium">{customer.name}</span>
                     <span className="break-all text-xs text-muted-foreground">
-                      {customer.email}
+                      {[customer.email, customer.phone]
+                        .filter(Boolean)
+                        .join(" · ") || "No contact details"}
                     </span>
                   </div>
                   <span className="shrink-0 text-sm text-muted-foreground">
@@ -84,6 +92,7 @@ export function CustomersManagement() {
                   <TableRow>
                     <TableHead>Customer</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
                     <TableHead>Total Bookings</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -91,7 +100,10 @@ export function CustomersManagement() {
                   {filtered.map((customer) => (
                     <TableRow key={customer.id}>
                       <TableCell className="font-medium">{customer.name}</TableCell>
-                      <TableCell>{customer.email}</TableCell>
+                      <TableCell>{customer.email || "—"}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {customer.phone || "—"}
+                      </TableCell>
                       <TableCell>{customer.totalBookings}</TableCell>
                     </TableRow>
                   ))}

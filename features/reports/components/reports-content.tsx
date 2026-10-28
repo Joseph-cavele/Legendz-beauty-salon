@@ -15,6 +15,8 @@ import { formatCurrency } from "@/lib/currency"
 import { useReports } from "@/features/reports/hooks/use-reports"
 import { RevenueChart } from "@/features/reports/components/revenue-chart"
 import { StatusChart } from "@/features/reports/components/status-chart"
+import { ReportExport } from "@/features/reports/components/report-export"
+import { SALON_ADDRESS, SALON_NAME, SALON_PHONE_DISPLAY } from "@/lib/salon-contact"
 
 const money = formatCurrency
 
@@ -41,6 +43,7 @@ export function ReportsContent() {
     {
       label: "Total revenue",
       value: money(data.summary.totalRevenue),
+      detail: `${money(data.summary.earnedRevenue ?? 0)} earned · ${money(data.summary.bookedRevenue ?? 0)} booked`,
       icon: Banknote,
       tint: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     },
@@ -60,20 +63,39 @@ export function ReportsContent() {
       label: "Cancellation rate",
       value: `${data.summary.cancellationRate}%`,
       icon: XCircle,
-      tint: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+      tint: "bg-destructive/10 text-destructive",
     },
   ]
 
   return (
-    <div className="flex flex-col gap-6 p-4 sm:p-6">
-      <div>
-        <h1 className="font-heading text-xl font-semibold">Reports</h1>
-        <p className="text-sm text-muted-foreground">
-          Performance overview across all bookings.
+    <div className="flex flex-col gap-6 p-4 sm:p-6 print:gap-4 print:p-0">
+      {/* Letterhead — printed copies only, since the sidebar and topbar that
+          carry the brand on screen are hidden in print. */}
+      <div className="hidden border-b-2 border-brand-accent pb-3 print:flex print:items-end print:justify-between">
+        <div>
+          <p className="font-display text-2xl font-medium">{SALON_NAME}</p>
+          <p className="text-xs text-muted-foreground">
+            {SALON_ADDRESS} · {SALON_PHONE_DISPLAY}
+          </p>
+        </div>
+        <p suppressHydrationWarning className="text-right text-xs text-muted-foreground">
+          Business report
+          <br />
+          Generated {new Date().toLocaleString("en-ZA", { dateStyle: "long", timeStyle: "short" })}
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-xl font-semibold">Reports</h1>
+          <p className="text-sm text-muted-foreground">
+            Performance overview across all bookings. Revenue = earned (completed) + booked (confirmed, not yet done).
+          </p>
+        </div>
+        <ReportExport data={data} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 print:grid-cols-4">
         {cards.map((card) => (
           <Card key={card.label}>
             <CardContent className="flex flex-col gap-3">
@@ -83,18 +105,23 @@ export function ReportsContent() {
                   <card.icon className="size-4" />
                 </span>
               </div>
-              <span className="text-2xl font-semibold">{card.value}</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-2xl font-semibold">{card.value}</span>
+                {"detail" in card && card.detail && (
+                  <span className="text-xs text-muted-foreground">{card.detail}</span>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 print:grid-cols-2">
         <RevenueChart data={data.monthlyRevenue} />
         <StatusChart data={data.statusBreakdown} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 print:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Top Services</CardTitle>

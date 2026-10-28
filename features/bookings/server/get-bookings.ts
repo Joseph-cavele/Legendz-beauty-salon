@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db"
 import { BookingModel } from "@/lib/models/Booking"
+import { formatTotal } from "@/lib/currency"
 import type { BookingListItem, BookingStatus } from "@/types"
 
 interface PopulatedBooking {
@@ -10,6 +11,7 @@ interface PopulatedBooking {
   bookingDate: string
   bookingTime: string
   status: string
+  source?: string
 }
 
 export async function getBookings(status?: BookingStatus): Promise<BookingListItem[]> {
@@ -28,9 +30,11 @@ export async function getBookings(status?: BookingStatus): Promise<BookingListIt
     customerEmail: b.customer?.email ?? "",
     stylistName: b.stylist?.name ?? "Unknown",
     serviceNames: b.services.map((s) => s.name),
-    total: b.services.reduce((sum, s) => sum + s.price, 0),
+    total: b.services.reduce((sum, s) => sum + (s.price ?? 0), 0),
+    totalDisplay: formatTotal(b.services.map((s) => s.price)),
     bookingDate: b.bookingDate,
     bookingTime: b.bookingTime,
     status: b.status as BookingStatus,
+    walkIn: b.source === "WALK_IN",
   }))
 }

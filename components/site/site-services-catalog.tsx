@@ -10,14 +10,13 @@ import { serviceCatalog, type CatalogItem } from "@/lib/salon-services"
 /* The full catalogue, one card per service, grouped by category.
 
    Card anatomy follows the reference layout: a circular image medallion on a
-   soft pink ground, then title, description, price, and a full-width action.
+   dark surface, then title, description, price, and a full-width action.
 
    NOT carried over from the reference: the star rating and review count each
    of its cards displays. There is no rating data in this system — no reviews
    collection, no aggregate on the Service model — so any stars rendered here
    would be numbers invented for real customers to read. That is a fabricated
-   endorsement rather than a placeholder, which is the same line
-   site-testimonials.tsx draws for the same reason. When real ratings exist,
+   endorsement rather than a placeholder. When real ratings exist,
    the slot for them is between the description and the button. */
 
 /** Initials for a service with no photograph — up to two significant words. */
@@ -42,12 +41,12 @@ function ServiceCard({ item, delay }: { item: CatalogItem; delay: number }) {
       whileInView="show"
       viewport={{ once: true, amount: 0.2 }}
       variants={fadeUp(reduce, delay, 24)}
-      className="group flex flex-col items-center rounded-[22px] bg-rose-surface p-6 text-center shadow-[0_18px_50px_-24px_rgba(39,33,42,0.28)] transition-shadow duration-300 hover:shadow-[0_26px_64px_-22px_rgba(39,33,42,0.34)]"
+      className="group flex flex-col items-center rounded-[22px] bg-brand-surface p-6 text-center shadow-[0_18px_50px_-24px_rgba(0,0,0,0.28)] transition-shadow duration-300 hover:shadow-[0_26px_64px_-22px_rgba(0,0,0,0.34)]"
     >
       {/* The medallion keeps its circle whether it holds a photo or a
           monogram, so a category with only some photographs still reads as
           one even grid rather than two different card designs. */}
-      <div className="relative grid size-32 shrink-0 place-items-center overflow-hidden rounded-full bg-[radial-gradient(circle_at_50%_35%,#fbe4ee_0%,#f7d7e6_100%)]">
+      <div className="relative grid size-32 shrink-0 place-items-center overflow-hidden rounded-full bg-[radial-gradient(circle_at_50%_35%,color-mix(in_srgb,var(--lz-gold)_18%,var(--lz-surface))_0%,var(--lz-surface)_100%)]">
         {item.image ? (
           <NextImage
             src={item.image}
@@ -59,14 +58,14 @@ function ServiceCard({ item, delay }: { item: CatalogItem; delay: number }) {
         ) : (
           <span
             aria-hidden
-            className="font-display text-3xl font-medium text-rose-accent"
+            className="font-display text-3xl font-medium text-brand-accent"
           >
             {monogram(item.name)}
           </span>
         )}
       </div>
 
-      <h3 className="mt-6 font-display text-lg font-medium text-rose-ink">
+      <h3 className="mt-6 font-display text-lg font-medium text-brand-text">
         {item.name}
       </h3>
 
@@ -75,19 +74,19 @@ function ServiceCard({ item, delay }: { item: CatalogItem; delay: number }) {
           wrapper keeps every button in a row aligned regardless. */}
       <div className="mt-2 flex flex-1 flex-col">
         {item.description && (
-          <p className="font-ui text-sm leading-[1.65] text-rose-muted">
+          <p className="font-ui text-sm leading-[1.65] text-brand-muted">
             {item.description}
           </p>
         )}
 
-        <p className="mt-3 font-ui text-sm font-bold text-rose-accent">
+        <p className="mt-3 font-ui text-sm font-bold text-brand-accent">
           {item.price}
         </p>
       </div>
 
       <Link
         href="/book"
-        className="mt-6 w-full rounded-full bg-rose-mid px-5 py-3 font-ui text-xs font-semibold text-rose-accent transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-accent hover:text-white hover:shadow-[0_12px_26px_-10px_rgba(236,72,153,0.9)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-accent active:translate-y-0"
+        className="mt-6 w-full rounded-full bg-brand-line px-5 py-3 font-ui text-xs font-semibold text-brand-accent transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-accent hover:text-brand-on-accent hover:shadow-[0_12px_26px_-10px_color-mix(in_srgb,var(--lz-gold)_90%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-accent active:translate-y-0"
       >
         Book {item.name}
       </Link>
@@ -115,11 +114,11 @@ export function SiteServicesCatalog() {
             variants={fadeUp(reduce, 0, 18)}
             className="flex items-center gap-4"
           >
-            <h2 className="font-display text-[clamp(1.5rem,3vw,2rem)] font-medium tracking-[-0.01em] text-rose-ink">
+            <h2 className="font-display text-[clamp(1.5rem,3vw,2rem)] font-medium tracking-[-0.01em] text-brand-text">
               {category.title}
             </h2>
-            <span aria-hidden className="h-px flex-1 bg-rose-mid" />
-            <span className="font-ui text-xs font-semibold tracking-[0.14em] text-rose-muted uppercase">
+            <span aria-hidden className="h-px flex-1 bg-brand-line" />
+            <span className="font-ui text-xs font-semibold tracking-[0.14em] text-brand-muted uppercase">
               {category.items.length} services
             </span>
           </motion.div>

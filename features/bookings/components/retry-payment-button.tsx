@@ -34,7 +34,7 @@ export function RetryPaymentButton({ bookingId }: { bookingId: string }) {
       type="button"
       onClick={onRetry}
       disabled={pending}
-      className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-rose-accent px-8 py-3.5 font-ui text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-12px_rgba(236,72,153,0.9)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-accent active:translate-y-0 disabled:pointer-events-none disabled:opacity-60"
+      className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-brand-accent px-8 py-3.5 font-ui text-sm font-semibold text-brand-on-accent transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-12px_color-mix(in_srgb,var(--lz-gold)_90%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent active:translate-y-0 disabled:pointer-events-none disabled:opacity-60"
     >
       {pending && <Loader2 className="size-4 animate-spin" aria-hidden />}
       {pending ? "Redirecting…" : "Try payment again"}

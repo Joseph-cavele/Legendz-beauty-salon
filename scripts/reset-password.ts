@@ -1,20 +1,21 @@
-import "dotenv/config"
+import "./legendz-env" // must stay first: loads env and refuses non-Legendz databases
 import bcrypt from "bcryptjs"
 import { connectDB } from "../lib/db"
 import { UserModel } from "../lib/models/User"
+import { SALON_EMAIL } from "../lib/salon-contact"
 
 // Accounts whose password should be rotated.
-const ACCOUNTS = ["owner@salon.test", "jordan@salon.test"]
+const ACCOUNTS = [SALON_EMAIL]
 
 // Updates ONLY the password field of the existing accounts — unlike `seed`,
 // this never deletes or re-inserts any data. Run with:
-//   SEED_PASSWORD in your .env, then `npm run reset-password`
+//   SEED_PASSWORD in your .env.local, then `npm run reset-password`
 async function resetPasswords() {
   const password = process.env.SEED_PASSWORD
 
   if (!password || password.length < 8) {
     console.error(
-      "❌ Set SEED_PASSWORD (at least 8 characters) in your .env before running this."
+      "❌ Set SEED_PASSWORD (at least 8 characters) in your .env.local before running this."
     )
     process.exit(1)
   }

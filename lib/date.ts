@@ -13,3 +13,32 @@ export function salonToday(): string {
     new Date()
   )
 }
+
+/**
+ * The real instant of a salon-local "YYYY-MM-DD" + "HH:MM" — e.g. when an
+ * appointment starts. Works out the salon timezone's offset for that date,
+ * so it stays right on a UTC server (and would survive daylight saving).
+ */
+export function salonDateTime(date: string, time: string): Date {
+  const [y, m, d] = date.split("-").map(Number)
+  const [hh, mm] = time.split(":").map(Number)
+  const asUtc = Date.UTC(y, m - 1, d, hh, mm)
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: SALON_TIMEZONE,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(new Date(asUtc))
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value)
+  const zonedAsUtc = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"))
+  return new Date(asUtc - (zonedAsUtc - asUtc))
+}
+
+/** The salon-local date `days` days before (negative = after) today, "YYYY-MM-DD". */
+export function salonDateDaysAgo(days: number): string {
+  const [y, m, d] = salonToday().split("-").map(Number)
+  return new Date(Date.UTC(y, m - 1, d - days)).toISOString().slice(0, 10)
+}

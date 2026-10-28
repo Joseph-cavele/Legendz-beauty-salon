@@ -31,7 +31,7 @@ const playfair = Playfair_Display({
 });
 
 /* Marketing-site faces. Bodoni Moda is a Didone: thin hairlines and high
-   stroke contrast, which is what reads as luxury next to the rose palette.
+   stroke contrast, which is what reads as luxury next to the black-and-gold palette.
    Both are variable, so no `weight` array — one file per style covers the
    whole range. The dashboard keeps Inter + Playfair. */
 const bodoni = Bodoni_Moda({
@@ -48,9 +48,18 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Patrick — Dreadlocks & Beauty Salon",
+  title: "Legendz Beauty Salon — Zwelethemba, Worcester",
   description:
-    "Loc starts, retwists and restyles by hand, plus nails, skin and brows. Book your appointment online in minutes.",
+    "Dreadlocks, braids, nails, hair and weaves at Legendz Beauty Salon, Mtwazi Street, Zwelethemba, Worcester. Open Monday–Sunday, 08:30–18:00. Book online.",
+  applicationName: "Legendz Beauty Salon",
+  openGraph: {
+    siteName: "Legendz Beauty Salon",
+    title: "Legendz Beauty Salon",
+    description:
+      "Dreadlocks, braids, nails, hair and weaves in Zwelethemba, Worcester. Book online.",
+    locale: "en_ZA",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

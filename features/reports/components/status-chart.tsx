@@ -12,20 +12,18 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { BookingStatus } from "@/types"
 
-/* Status colours, ramped along the brand's fuchsia arc so "further through
-   the funnel" reads as "deeper pink": pale rose while money is outstanding,
-   full fuchsia once confirmed, deep berry when completed.
-
-   The two exits from the funnel deliberately leave the ramp — cancelled is
-   red and no-show is a neutral mauve-grey. If they stayed on the pink scale
-   they'd read as just another stage rather than a failure. */
+/* Status colours, read from the theme's chart tokens so the chart follows
+   the brand palette: gold deepens as a booking moves through the funnel.
+   The two exits deliberately leave the ramp — cancelled is the destructive
+   red and no-show the neutral muted grey — so they read as failures rather
+   than another stage. */
 const STATUS_COLORS: Record<BookingStatus, { light: string; dark: string }> = {
-  PENDING_PAYMENT: { light: "#f9d9e3", dark: "#6b3a52" },
-  PENDING: { light: "#f9a8d4", dark: "#f9a8d4" },
-  CONFIRMED: { light: "#ec4899", dark: "#ec4899" },
-  COMPLETED: { light: "#be185d", dark: "#f472b6" },
-  CANCELLED: { light: "#ba1a1a", dark: "#ffb4ab" },
-  NO_SHOW: { light: "#7c6b74", dark: "#b9a8b2" },
+  PENDING_PAYMENT: { light: "var(--chart-5)", dark: "var(--chart-5)" },
+  PENDING: { light: "var(--chart-2)", dark: "var(--chart-2)" },
+  CONFIRMED: { light: "var(--chart-1)", dark: "var(--chart-1)" },
+  COMPLETED: { light: "var(--chart-3)", dark: "var(--chart-3)" },
+  CANCELLED: { light: "var(--destructive)", dark: "var(--destructive)" },
+  NO_SHOW: { light: "var(--chart-4)", dark: "var(--chart-4)" },
 }
 
 const STATUS_LABEL: Record<BookingStatus, string> = {

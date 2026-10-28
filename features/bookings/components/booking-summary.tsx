@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { formatTotal } from "@/lib/currency"
 import type { Service, Stylist } from "@/types"
 
 function formatDuration(minutes: number) {
@@ -24,7 +25,6 @@ export function BookingSummary({
   bookingDate?: string
   bookingTime?: string
 }) {
-  const totalPrice = services.reduce((sum, s) => sum + s.price, 0)
   const totalDuration = services.reduce((sum, s) => sum + s.duration, 0)
 
   return (
@@ -44,7 +44,7 @@ export function BookingSummary({
         <Separator />
         <SummaryRow
           label="Total price"
-          value={services.length ? `R${totalPrice}` : "—"}
+          value={services.length ? formatTotal(services.map((s) => s.price)) : "—"}
         />
         <SummaryRow
           label="Total duration"

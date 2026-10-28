@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { DEFAULT_DIAL_CODE, contactMessageSchema } from "@/features/contact/schema"
 import { contactMessageOwnerEmailHtml } from "@/emails/contact-message-owner"
+import { contactMessageReceivedEmailHtml } from "@/emails/contact-message-received"
 import { connectDB } from "@/lib/db"
 import { ContactMessageModel } from "@/lib/models/ContactMessage"
-import { resend } from "@/lib/resend"
+import { EMAIL_REPLY_TO, emailFrom, resend } from "@/lib/resend"
 
 /**
  * Public contact endpoint — unauthenticated, and it writes to the database
@@ -118,12 +119,12 @@ export async function POST(req: NextRequest) {
   } else {
     try {
       const { error } = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
+        from: emailFrom(),
         to,
         // Reply goes to the visitor, not to the no-reply sender, so the owner
         // can answer from their inbox without copying the address out.
         replyTo: email,
-        subject: `Website enquiry from ${name}`,
+        subject: `Website enquiry from ${name} — Legendz Beauty Salon`,
         html: contactMessageOwnerEmailHtml({
           name,
           email,
@@ -144,6 +145,25 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       console.error("Failed to send contact email", err)
       emailSent = false
+    }
+  }
+
+  /* The visitor's copy: confirms the enquiry arrived. Independent of the
+     owner's email above — one failing never stops the other — and never
+     fails the request, since the message is already saved. */
+  if (resend) {
+    try {
+      const { error } = await resend.emails.send({
+        from: emailFrom(),
+        to: email,
+        // Their reply lands in the salon's inbox, not the no-reply sender.
+        replyTo: EMAIL_REPLY_TO,
+        subject: "We received your message — Legendz Beauty Salon",
+        html: contactMessageReceivedEmailHtml({ name, message }),
+      })
+      if (error) console.error("Contact confirmation email rejected by Resend:", error)
+    } catch (err) {
+      console.error("Failed to send contact confirmation email", err)
     }
   }
 
