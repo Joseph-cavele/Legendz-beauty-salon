@@ -4,7 +4,7 @@ import { connectDB } from "@/lib/db"
 import { LoginCodeModel } from "@/lib/models/LoginCode"
 import { SettingsModel } from "@/lib/models/Settings"
 import { UserModel } from "@/lib/models/User"
-import { ownerEmailFromEnv, ownerNameFromEnv } from "@/lib/owner-account"
+import { developerEmailFromEnv, ownerEmailFromEnv, ownerNameFromEnv } from "@/lib/owner-account"
 import { emailFrom, resend } from "@/lib/resend"
 import { loginCodeEmailHtml } from "@/emails/login-code"
 
@@ -13,7 +13,8 @@ import { loginCodeEmailHtml } from "@/emails/login-code"
 
    Who can sign in: the OWNER — Settings.ownerLoginEmail, or OWNER_EMAIL
    from .env while that is empty (lib/owner-account.ts) — plus anyone the
-   owner adds under Settings → Dashboard access (Settings.dashboardUsers).
+   owner adds under Settings → Dashboard access (Settings.dashboardUsers),
+   plus the developer (DEVELOPER_EMAIL in .env), for support.
    Nobody else can even request a code.
 
    Sign in   requestLoginCode → code emailed to that address →
@@ -63,8 +64,16 @@ export async function getDashboardUsers(): Promise<DashboardUser[]> {
   return (settings?.dashboardUsers ?? []).map((u) => ({ name: u.name, email: normalizeEmail(u.email) }))
 }
 
-/** True when `email` may sign in: the owner, or on the owner's access list. */
+/** True when `email` is DEVELOPER_EMAIL from .env. */
+export function isDeveloperEmail(email: string) {
+  const developer = developerEmailFromEnv()
+  return developer !== "" && normalizeEmail(email) === developer
+}
+
+/** True when `email` may sign in: the owner, the developer, or on the
+    owner's access list. */
 export async function isAllowedEmail(email: string) {
+  if (isDeveloperEmail(email)) return true
   if (await isOwnerEmail(email)) return true
   const wanted = normalizeEmail(email)
   return (await getDashboardUsers()).some((u) => u.email === wanted)
@@ -116,9 +125,10 @@ export async function ensureOwnerUser(rawEmail: string) {
   await connectDB()
   const email = normalizeEmail(rawEmail)
   const listed = (await getDashboardUsers()).find((u) => u.email === email)
+  const name = listed?.name || (isDeveloperEmail(email) ? "Developer" : ownerNameFromEnv())
   return UserModel.findOneAndUpdate(
     { email },
-    { $setOnInsert: { email, name: listed?.name || ownerNameFromEnv(), role: "owner" } },
+    { $setOnInsert: { email, name, role: "owner" } },
     { upsert: true, returnDocument: "after" }
   )
 }

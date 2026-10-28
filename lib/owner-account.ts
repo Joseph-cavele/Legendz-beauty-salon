@@ -23,6 +23,13 @@ export function ownerEmailFromEnv() {
   return clean(process.env.OWNER_EMAIL).toLowerCase()
 }
 
+/** DEVELOPER_EMAIL, lower-cased: the site's developer, who may also sign in
+    to the dashboard (for support) but cannot manage the owner's sign-in or
+    the access list. "" when it isn't set. */
+export function developerEmailFromEnv() {
+  return clean(process.env.DEVELOPER_EMAIL).toLowerCase()
+}
+
 /** OWNER_NAME, or the salon's contact person. */
 export function ownerNameFromEnv() {
   return clean(process.env.OWNER_NAME) || SALON_CONTACT_PERSON
