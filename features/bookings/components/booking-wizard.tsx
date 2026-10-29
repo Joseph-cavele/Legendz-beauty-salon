@@ -574,6 +574,11 @@ function ServiceStep({
   const countByCategory = (category: string) =>
     services.filter((s) => (s.category ?? DEFAULT_SERVICE_CATEGORY) === category).length
 
+  /* Services without their own photo fall back to the category's, so one
+     list could show the same picture several times. Each photo appears once
+     per list; a later card that would repeat it gets a plain tile instead. */
+  const shownPhotos = new Set<string>()
+
   return (
     <div>
       <h2 className="font-display text-xl font-semibold text-brand-text">
@@ -641,6 +646,9 @@ function ServiceStep({
           ) : (
             categoryServices.map((service) => {
               const active = selectedIds.includes(service.id)
+              const photo = serviceImage(service)
+              const repeated = shownPhotos.has(photo)
+              shownPhotos.add(photo)
               return (
                 <button
                   key={service.id}
@@ -682,15 +690,24 @@ function ServiceStep({
                       </span>
                     </div>
                   </div>
-                  <div className="relative size-20 shrink-0 overflow-hidden rounded-lg">
-                    <Image
-                      src={serviceImage(service)}
-                      alt={serviceImageAlt(service)}
-                      fill
-                      sizes="80px"
-                      className="object-cover"
-                    />
-                  </div>
+                  {repeated ? (
+                    <div
+                      aria-hidden
+                      className="flex size-20 shrink-0 items-center justify-center rounded-lg bg-brand-line/40 ring-1 ring-brand-line"
+                    >
+                      <Sparkles className="size-6 text-brand-accent/70" />
+                    </div>
+                  ) : (
+                    <div className="relative size-20 shrink-0 overflow-hidden rounded-lg">
+                      <Image
+                        src={photo}
+                        alt={serviceImageAlt(service)}
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
                 </button>
               )
             })

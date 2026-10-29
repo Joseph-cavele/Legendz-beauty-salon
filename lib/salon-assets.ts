@@ -94,11 +94,13 @@ export const salonImages = {
       src: photo("66bb64901b805bae731095695b0484e7 (1).jpg"),
       alt: "Square nails with pink French tips, animal-print accents and 3D flowers",
     },
-    /* Carries another nail artist's watermark (@arnold_nails_tz) — replace
-       first, or confirm permission to use it. */
     "Gel Style": {
-      src: photo("52e7cef63b801a2ced88de4364daf9d6.jpg"),
-      alt: "Almond nails with gold chrome French tips and floral accents",
+      src: photo("35abd7ca51daacdb6da70e38a6bcefc6.jpg"),
+      alt: "Long square nails with white French tips, brown flowers and animal-print accents",
+    },
+    Pedicure: {
+      src: photo("033bd32d367c9d2df7736af922cdcd6d.jpg"),
+      alt: "Toenails in soft pink with gold chrome French tips",
     },
     Knotless: {
       src: stock("long braids.jpg"),
@@ -111,6 +113,22 @@ export const salonImages = {
     Curly: {
       src: photo("ae240a43e2b6d2bfe1a2925b0fef824f.jpg"),
       alt: "Long, defined curly braids framing the face",
+    },
+    "Start with natural hair": {
+      src: photo("IMG-20261002-WA0015.jpg"),
+      alt: "Back view of fresh two-strand twists on natural hair, finished with curled ends",
+    },
+    Crochet: {
+      src: photo("IMG-20261002-WA0005.jpg"),
+      alt: "Locs gathered into a rolled updo with twisted sides at the hairline",
+    },
+    "Permanent Fibre": {
+      src: photo("e3d002ae25dff8a8840eefbc8eab110e.jpg"),
+      alt: "Long black and copper locs swept back from twisted sides",
+    },
+    "Wash only": {
+      src: photo("IMG-20261002-WA0016.jpg"),
+      alt: "Back view of clean, full locs curled into a puff",
     },
     "Start with extension": {
       src: stock("cf93077137ad8a0aeee83293487a8021.jpg"),
