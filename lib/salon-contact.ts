@@ -33,7 +33,7 @@ export const SALON_WHATSAPP = "27827119728"
 export const SALON_EMAIL = "luyandathabethe2k@gmail.com"
 
 /** As printed on the site. */
-export const SALON_ADDRESS = "Mtwazi Street, Zwelethemba, Worcester"
+export const SALON_ADDRESS = "Mtwazi Street, Zwelethemba, Worcester & Kay vibes lounge"
 
 /** What the map is asked to find — country spelled out so the geocoder
     doesn't pick a Worcester on another continent. */
