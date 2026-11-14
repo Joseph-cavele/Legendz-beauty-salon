@@ -26,6 +26,7 @@ import {
   SALON_MAP_QUERY,
   SALON_PHONE,
   SALON_PHONE_DISPLAY,
+  SALON_STELLENBOSCH,
   WHATSAPP_MESSAGES,
   whatsappLink,
 } from "@/lib/salon-contact"
@@ -431,7 +432,7 @@ export function SiteContact() {
             >
               <h3 className="flex items-center gap-2.5 font-display text-lg font-medium text-brand-text">
                 <Clock className="size-4 text-brand-accent" aria-hidden />
-                Opening hours
+                Worcester opening hours
               </h3>
 
               <dl className="mt-5">
@@ -506,6 +507,37 @@ export function SiteContact() {
                   />
                   Message us on WhatsApp
                 </a>
+              </div>
+            </motion.div>
+
+            <motion.div
+              {...reveal(0.22, 28)}
+              className="overflow-hidden rounded-[22px] border border-brand-accent/35 bg-brand-surface shadow-[0_24px_60px_-30px_rgba(0,0,0,0.4)]"
+            >
+              <div className="border-b border-brand-accent/25 bg-brand-line/30 px-7 py-5 sm:px-8">
+                <p className="font-ui text-[10px] font-semibold tracking-[0.22em] text-brand-accent uppercase">
+                  Now in Stellenbosch
+                </p>
+                <h3 className="mt-2 font-display text-xl font-medium text-brand-text">
+                  {SALON_STELLENBOSCH.name}
+                </h3>
+              </div>
+              <div className="space-y-4 px-7 py-6 sm:px-8">
+                <p className="flex items-start gap-3 font-ui text-sm text-brand-muted">
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-brand-accent" aria-hidden />
+                  {SALON_STELLENBOSCH.venue}
+                </p>
+                <p className="flex items-start gap-3 font-ui text-sm text-brand-muted">
+                  <Clock className="mt-0.5 size-4 shrink-0 text-brand-accent" aria-hidden />
+                  {SALON_STELLENBOSCH.days}, {SALON_STELLENBOSCH.open}–{SALON_STELLENBOSCH.close}
+                </p>
+                <p className="font-ui text-sm leading-[1.7] text-brand-muted">
+                  {SALON_STELLENBOSCH.services}
+                </p>
+                <p className="rounded-xl border-l-2 border-brand-accent bg-brand-line/30 px-4 py-3 font-ui text-sm leading-[1.7] text-brand-text">
+                  <span className="font-semibold text-brand-accent">Early bird special: </span>
+                  {SALON_STELLENBOSCH.earlyBirdOffer}
+                </p>
               </div>
             </motion.div>
           </div>

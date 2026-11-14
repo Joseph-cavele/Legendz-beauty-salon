@@ -48,15 +48,20 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Legendz Beauty Salon — Zwelethemba, Worcester",
+  title: "Legendz Beauty Salon — Worcester & Stellenbosch",
   description:
-    "Dreadlocks, braids, nails, hair and weaves at Legendz Beauty Salon, Mtwazi Street, Zwelethemba, Worcester. Open Monday–Sunday, 08:30–18:00. Book online.",
+    "Visit Legendz Beauty Salon in Zwelethemba, Worcester, or at Kay Vibes eDamini in Stellenbosch for dreadlocks. Both locations are open daily.",
   applicationName: "Legendz Beauty Salon",
+  icons: {
+    icon: [{ url: "/legendz/logo.jpg", type: "image/jpeg" }],
+    shortcut: "/legendz/logo.jpg",
+    apple: "/legendz/logo.jpg",
+  },
   openGraph: {
     siteName: "Legendz Beauty Salon",
     title: "Legendz Beauty Salon",
     description:
-      "Dreadlocks, braids, nails, hair and weaves in Zwelethemba, Worcester. Book online.",
+      "Dreadlocks, braids, nails, hair and weaves in Worcester, plus dreadlocks at Kay Vibes eDamini in Stellenbosch.",
     locale: "en_ZA",
     type: "website",
   },

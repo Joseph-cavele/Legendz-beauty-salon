@@ -201,18 +201,17 @@ export function SiteAbout() {
             {...reveal(0.16)}
             className="mt-6 font-ui text-sm leading-[1.8] text-brand-muted sm:text-base"
           >
-            {SALON_NAME} is on Mtwazi Street in Zwelethemba, Worcester, and
-            open every day of the week. Book online, or message us on WhatsApp
-            if you are not sure which service you need.
+            Find us on Mtwazi Street in Zwelethemba, Worcester, or at Kay Vibes
+            eDamini in Stellenbosch. Both locations are open every day.
           </motion.p>
 
           <motion.p
             {...reveal(0.22)}
             className="mt-4 font-ui text-sm leading-[1.8] text-brand-muted sm:text-base"
           >
-            We start and maintain dreadlocks — with a scalp treatment
-            included — and do braids, nails, hair styling and weave
-            installation, all under one roof.
+            Our Worcester salon offers dreadlocks, braids, nails, hair styling
+            and weave installation. The Stellenbosch branch focuses on
+            dreadlock installations, retwists, maintenance, repairs and styling.
           </motion.p>
 
           <motion.dl {...reveal(0.28)} className="mt-10 flex flex-wrap gap-x-10 gap-y-6">

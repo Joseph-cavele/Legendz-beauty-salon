@@ -9,7 +9,7 @@
    the dashboard. Kept in step by hand — that model cannot import this file.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const SALON_NAME = "Legendz Beauty Salon"
+export const SALON_NAME = "legend Beauty Salon"
 
 /** The public site's address, for the sitemap and robots.txt. Legendz has no
     domain on record yet, so it follows NEXT_PUBLIC_APP_URL — set that on the
@@ -33,7 +33,7 @@ export const SALON_WHATSAPP = "27827119728"
 export const SALON_EMAIL = "luyandathabethe2k@gmail.com"
 
 /** As printed on the site. */
-export const SALON_ADDRESS = "Mtwazi Street, Zwelethemba, Worcester & Kay vibes lounge"
+export const SALON_ADDRESS = "Mtwazi Street, Zwelethemba, Worcester"
 
 /** What the map is asked to find — country spelled out so the geocoder
     doesn't pick a Worcester on another continent. */
@@ -53,6 +53,17 @@ export const SALON_HOURS = {
 } as const
 
 export const SALON_HOURS_DISPLAY = `${SALON_HOURS.days}, ${SALON_HOURS.open}–${SALON_HOURS.close}`
+
+/** Informational branch details — bookings still use the Worcester location. */
+export const SALON_STELLENBOSCH = {
+  name: "Legendz Stellenbosch",
+  venue: "Kay Vibes eDamini, Stellenbosch",
+  days: SALON_HOURS.days,
+  open: SALON_HOURS.open,
+  close: "18:30",
+  services: "Dreadlock installations, retwists, maintenance, repairs and styling.",
+  earlyBirdOffer: "10% off all dreadlocks services when you arrive before 10:00 AM.",
+} as const
 
 /**
  * The salon's social profiles.

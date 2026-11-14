@@ -5,8 +5,10 @@ import {
   SALON_NAME,
   SALON_PHONE,
   SALON_PHONE_DISPLAY,
+  SALON_SITE_URL,
   SALON_WHATSAPP,
 } from "@/lib/salon-contact"
+import { salonImages } from "@/lib/salon-assets"
 
 /* Email clients ignore CSS variables and stylesheets, so the brand palette
    from app/globals.css is repeated here as literals — the one place emails
@@ -32,7 +34,16 @@ export function brandedEmail(body: string) {
   return `
     <div style="font-family: Arial, Helvetica, sans-serif; max-width: 520px; margin: 0 auto; color: ${c.text};">
       <div style="background: ${c.black}; padding: 20px 24px; border-bottom: 3px solid ${c.gold};">
-        <span style="color: ${c.gold}; font-family: Georgia, serif; font-size: 22px; letter-spacing: 2px;">${SALON_NAME}</span>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="padding-right: 14px;">
+              <img src="${SALON_SITE_URL}${salonImages.logo.src}" alt="${salonImages.logo.alt}" width="64" height="64" style="display: block; width: 64px; height: 64px; border: 0; border-radius: 4px; background-color: #f6f1f5;" />
+            </td>
+            <td valign="middle">
+              <span style="color: ${c.gold}; font-family: Georgia, serif; font-size: 22px; letter-spacing: 2px;">${SALON_NAME}</span>
+            </td>
+          </tr>
+        </table>
       </div>
       <div style="padding: 24px;">
         ${body}

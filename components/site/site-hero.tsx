@@ -20,8 +20,8 @@ const HEADLINE = ["Legendz", "Beauty Salon"]
 
 /* Facts only — no ratings or client counts until the salon has real ones. */
 const stats = [
-  { icon: Clock, value: `${SALON_HOURS.open}–${SALON_HOURS.close}`, label: SALON_HOURS.days },
-  { icon: MapPin, value: "Zwelethemba", label: "Worcester" },
+  { icon: Clock, value: `${SALON_HOURS.open}–${SALON_HOURS.close}`, label: "Worcester hours" },
+  { icon: MapPin, value: "2 locations", label: "Worcester · Stellenbosch" },
 ]
 
 export function SiteHero() {
@@ -96,9 +96,8 @@ export function SiteHero() {
           variants={fadeUp(reduce, 0, 20)}
           className="mx-auto mt-6 max-w-lg font-ui text-sm leading-[1.75] text-white/70 sm:text-base"
         >
-          Dreadlocks, braids, nails, hair and weaves in Zwelethemba,
-          Worcester. Open every day — book your appointment online in
-          minutes.
+          Dreadlocks, braids, nails, hair and weaves in Worcester, plus
+          dreadlocks at Kay Vibes eDamini in Stellenbosch.
         </motion.p>
 
         <motion.div
